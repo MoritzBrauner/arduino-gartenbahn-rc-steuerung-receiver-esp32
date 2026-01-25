@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include <nRF24L01.h> 
 #include <RF24.h> 
-#include <Wire.h>
 
 #define SAFE_MODE true
 #define DEBUG_MODE true
