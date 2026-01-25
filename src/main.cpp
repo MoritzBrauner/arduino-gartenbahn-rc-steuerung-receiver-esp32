@@ -83,8 +83,8 @@ void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled);
 void writeHorn(bool active);
 void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active); 
 void writeInteriorLights(bool active); 
-void handleUpperStickInput_512_1024(uint16_t &data, bool &lockVar, bool &outPut); 
-void handleLowerStickInput_0_512(uint16_t &data, bool &lockVar, bool &outPut);
+void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
+void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
 
 void setup() {  
   Serial.begin(115200);
@@ -126,38 +126,6 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 255; i ++) {
-    writeMotor(i, true, false); 
-    Serial.print("white up ");
-    serialPrint(i, 3); 
-    Serial.println();  
-    delay(10); 
-  }
-
-  for (int i = 255; i > 0; i--) {
-    writeMotor(i, true, false); 
-    Serial.print("white down ");
-    serialPrint(i, 3); 
-    Serial.println();
-    delay(10);
-  }
-
-    for (int i = 0; i < 255; i ++) {
-    writeMotor(i, false, false); 
-    Serial.print("red up ");
-    serialPrint(i, 3); 
-    Serial.println();
-    delay(10); 
-  }
-
-  for (int i = 255; i > 0; i--) {
-    writeMotor(i, false, false); 
-    Serial.print("red down ");
-    serialPrint(i, 3); 
-    Serial.println(); 
-    delay(10);
-  }
-
   //LX: Richtung V> R< 
   //LY: Fahrregler 
   //LZ: Horn 
@@ -166,28 +134,13 @@ void loop() {
   //RY: Umschalten Hecklichter / Licht an/aus 
   //RZ: Hauptschalter?  / Rangierschalter (langsamere V-max)? 
 
-  /*if (radio.available()) {
+  if (radio.available()) {
     radio.read(&data, sizeof(Data_Package));
     lastRadioRxTime = millis(); 
   }
   bool dataIsFresh = (millis() - lastRadioRxTime) <= RADIO_TIMEOUT_MS;
 
   if (dataIsFresh) {
-    int padding = 4; 
-    Serial.print("LX: "); 
-    serialPrint(data.lx, padding); 
-    Serial.print("   |   LY: "); 
-    serialPrint(data.ly, padding); 
-    Serial.print("   |   LZ: "); 
-    serialPrint(data.lz, padding); 
-    Serial.print("   |   RX: "); 
-    serialPrint(data.rx, padding); 
-    Serial.print("   |   RY: "); 
-    serialPrint(data.ry, padding); 
-    Serial.print("   |   RZ: "); 
-    serialPrint(data.rz, padding);
-    Serial.println();
-
     //LY
     uint8_t pwm = map(data.ly, 0, 1024, 0, 255);
     
@@ -205,6 +158,18 @@ void loop() {
       } 
     }
 
+    Serial.print("lx: "); 
+    serialPrint(data.lx, 4);
+    Serial.print("   |   going forward: "); 
+    Serial.print(goingForward);
+    Serial.print("   |   low gear: "); 
+    Serial.print(lowGearEnabled);
+    Serial.print("   |   ly: "); 
+    serialPrint(data.ly, 4);
+    Serial.print("   |   pwm: "); 
+    serialPrint(pwm, 3);
+    Serial.println();
+
     //LZ
     hornActive = data.lz;  
 
@@ -221,16 +186,17 @@ void loop() {
     handleUpperStickInput_512_1024(data.ry, ryuIsIgnored, lightsActive); 
 
     //RZ
-    lowGearEnabled = data.rz; 
+    lowGearEnabled = !data.rz; 
 
     if (!SAFE_MODE) {
-      writeMotor(pwm, goingForward, lowGearEnabled); 
-      writeExteriorLights(goingForward, lightsActive, rearLightsActive, lz1Active); 
-      writeInteriorLights(interiorLightsActive); 
-      writeHorn(hornActive);
+      if (dataIsFresh) {
+        writeMotor(pwm, goingForward, lowGearEnabled); 
+        writeExteriorLights(goingForward, lightsActive, rearLightsActive, lz1Active); 
+        writeInteriorLights(interiorLightsActive); 
+        writeHorn(hornActive);
+      }
     }
-
-
+    
   } else {
     long millisNow = millis(); 
     Serial.print("Data too old. Last data received at: ");
@@ -240,7 +206,7 @@ void loop() {
     Serial.print(" ("); 
     Serial.print(millisNow - lastRadioRxTime); 
     Serial.println(" ms ago)");
-  }*/
+  }
 }
 
 void writeForwardPWM(uint8_t pwm) {    
@@ -272,37 +238,46 @@ void writeInteriorLights(bool active) {
   digitalWrite(PIN_LIGHT_INTERIOR, active ? HIGH : LOW); 
 }
 
+void writeFrontLightsWhite();
+void writeFrontLightsRed();
+void writeFrontLightsOff();
+void writeRearLightsWhite();
+void writeRearLightsRed();
+void writeRearLightsOff();
+void writeLz1();
+
 void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active) {
   if (lightsActive) {
     if (lz1Active) {
       //write LZ1
-      
+      writeLz1();
     } else {
       if (direction) {
         //write front lights white
-
+        writeFrontLightsWhite();
         if (rearLightsActive) {
           //write rear lights red
-        
+          writeRearLightsRed();
         } else {
           //write rear lights off
-        
+          writeRearLightsOff();
         }
       } else {
         //write rear lights white
-        
+        writeRearLightsWhite();
         if (rearLightsActive) {
           //Write front lights red
-        
+          writeFrontLightsRed();
         } else {
           //write front lights off
-        
+          writeFrontLightsOff();
         }
       }
     }
   } else {
     //write all lights off
-  
+    writeFrontLightsOff();
+    writeRearLightsOff(); 
   }
 }
 
@@ -319,7 +294,7 @@ void serialPrint(int number, int places) {
 HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS
 -------------------------------------------------------------------------------------------------------------*/
 
-void handleLowerStickInput_0_512(uint16_t &data, bool &lockVar, bool &outPut) {
+void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut) {
   if (data < DEFAULT_STICK_TOLERANCE) {
     if (!lockVar) {
       outPut = !outPut;
@@ -330,7 +305,7 @@ void handleLowerStickInput_0_512(uint16_t &data, bool &lockVar, bool &outPut) {
   }
 }
 
-void handleUpperStickInput_512_1024(uint16_t &data, bool &lockVar, bool &outPut) {
+void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut) {
   if (data > 1024 - DEFAULT_STICK_TOLERANCE) {
     if (!lockVar) {
       outPut = !outPut;
@@ -340,3 +315,51 @@ void handleUpperStickInput_512_1024(uint16_t &data, bool &lockVar, bool &outPut)
     lockVar = false; 
   }
 }
+
+void writePin(uint8_t pin, bool status) {
+  digitalWrite(pin, status ? HIGH : LOW); 
+}
+
+void writeFrontLights(bool fla, bool flb, bool fra, bool frb, bool ft) {
+  writePin(PIN_LIGHT_FL_A, fla);
+  writePin(PIN_LIGHT_FL_B, flb);
+  writePin(PIN_LIGHT_FR_A, fra);
+  writePin(PIN_LIGHT_FR_B, frb); 
+  writePin(PIN_LIGHT_FT,   ft);
+}
+
+void writeRearLights(bool rla, bool rlb, bool rra, bool rrb, bool rt) {  
+  writePin(PIN_LIGHT_RL_A, rla);
+  writePin(PIN_LIGHT_RL_B, rlb);
+  writePin(PIN_LIGHT_RR_A, rra);
+  writePin(PIN_LIGHT_RR_B, rrb);
+  writePin(PIN_LIGHT_RT,   rt);
+}
+
+void writeFrontLightsWhite() {
+  writeFrontLights(true, false, true, false, true); 
+}
+
+void writeFrontLightsRed() {
+  writeFrontLights(false, true, false, true, false); 
+}
+
+void writeFrontLightsOff() {
+  writeFrontLights(false, false, false, false, false); 
+} 
+
+void writeRearLightsWhite() {
+  writeRearLights(true, false, true, false, true); 
+} 
+void writeRearLightsRed() {
+  writeRearLights(false, true, false, true, false); 
+} 
+
+void writeRearLightsOff() {
+  writeRearLights(false, false, false, false, false); 
+} 
+
+void writeLz1() {
+  writeFrontLights(false, false, true, false, false); 
+  writeRearLights(false, false, true, false, false);
+} 
