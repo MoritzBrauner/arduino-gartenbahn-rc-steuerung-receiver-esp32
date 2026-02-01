@@ -3,8 +3,8 @@
 #include <nRF24L01.h> 
 #include <RF24.h> 
 
-#define SAFE_MODE true
-#define DEBUG_MODE true
+#define SAFE_MODE false
+#define DEBUG_MODE false
 
 #define RADIO_TIMEOUT_MS 150
 
@@ -79,6 +79,7 @@ bool rearLightsActive = false;
 bool ryuIsIgnored = false;
 bool lightsActive = false; 
 
+void writePin(uint8_t pin, bool status);
 void serialPrint(int number, int places);
 void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled); 
 void writeHorn(bool active);
@@ -86,6 +87,7 @@ void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActiv
 void writeInteriorLights(bool active); 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
+void debugInputs();
 
 void setup() {  
   Serial.begin(115200);
@@ -115,12 +117,13 @@ void setup() {
   Serial.print("   Channel 1: ");
   Serial.println(ch1Freq); 
   Serial.print("   Channel 2: ");
-  Serial.println(ch1Freq); 
+  Serial.println(ch2Freq); 
 
   Serial.print("SAFE MODE ");
   Serial.println(SAFE_MODE ? "enabled, all Pin-Interactions disabled" : "disabled, Pin-Interactions enabled"); 
 
   //Set Pin Modes
+  Serial.println("Setting pin modes...");
   pinMode(PIN_HORN, OUTPUT);
   pinMode(PIN_LIGHT_INTERIOR, OUTPUT); 
   pinMode(PIN_LIGHT_FL_A, OUTPUT); 
@@ -134,23 +137,22 @@ void setup() {
   pinMode(PIN_LIGHT_RR_B, OUTPUT); 
   pinMode(PIN_LIGHT_RT, OUTPUT); 
   
-  //Write Pins LOW 
-  digitalWrite(PIN_HORN, LOW);
-  digitalWrite(PIN_LIGHT_INTERIOR, LOW); 
-  digitalWrite(PIN_LIGHT_FL_A, LOW); 
-  digitalWrite(PIN_LIGHT_FL_B, LOW); 
-  digitalWrite(PIN_LIGHT_FR_A, LOW); 
-  digitalWrite(PIN_LIGHT_FR_B, LOW); 
-  digitalWrite(PIN_LIGHT_FT, LOW); 
-  digitalWrite(PIN_LIGHT_RL_A, LOW); 
-  digitalWrite(PIN_LIGHT_RL_B, LOW); 
-  digitalWrite(PIN_LIGHT_RR_A, LOW); 
-  digitalWrite(PIN_LIGHT_RR_B, LOW); 
-  digitalWrite(PIN_LIGHT_RT, LOW); 
-  
+  //Write all Pins LOW 
+  Serial.println("Writing pins low...");
+  writePin(PIN_HORN, LOW);
+  writePin(PIN_LIGHT_INTERIOR, LOW); 
+  writePin(PIN_LIGHT_FL_A, LOW); 
+  writePin(PIN_LIGHT_FL_B, LOW); 
+  writePin(PIN_LIGHT_FR_A, LOW); 
+  writePin(PIN_LIGHT_FR_B, LOW); 
+  writePin(PIN_LIGHT_FT, LOW); 
+  writePin(PIN_LIGHT_RL_A, LOW); 
+  writePin(PIN_LIGHT_RL_B, LOW); 
+  writePin(PIN_LIGHT_RR_A, LOW); 
+  writePin(PIN_LIGHT_RR_B, LOW); 
+  writePin(PIN_LIGHT_RT, LOW); 
   
   Serial.println("Setup - End");
-
 }
 
 void loop() {
@@ -186,18 +188,6 @@ void loop() {
       } 
     }
 
-    Serial.print("lx: "); 
-    serialPrint(data.lx, 4);
-    Serial.print("   |   going forward: "); 
-    Serial.print(goingForward);
-    Serial.print("   |   low gear: "); 
-    Serial.print(lowGearEnabled);
-    Serial.print("   |   ly: "); 
-    serialPrint(data.ly, 4);
-    Serial.print("   |   pwm: "); 
-    serialPrint(pwm, 3);
-    Serial.println();
-
     //LZ
     hornActive = data.lz;  
 
@@ -216,15 +206,17 @@ void loop() {
     //RZ
     lowGearEnabled = !data.rz; 
 
-    if (!SAFE_MODE) {
-      if (dataIsFresh) {
-        writeMotor(pwm, goingForward, lowGearEnabled); 
-        writeExteriorLights(goingForward, lightsActive, rearLightsActive, lz1Active); 
-        writeInteriorLights(interiorLightsActive); 
-        writeHorn(hornActive);
-      }
+    if(DEBUG_MODE) {
+      debugInputs(); 
     }
-    
+
+    if (!SAFE_MODE) {
+      writeMotor(pwm, goingForward, lowGearEnabled); 
+      writeExteriorLights(goingForward, lightsActive, rearLightsActive, lz1Active); 
+      writeInteriorLights(interiorLightsActive); 
+      writeHorn(hornActive);  
+    }
+
   } else {
     long millisNow = millis(); 
     Serial.print("Data too old. Last data received at: ");
@@ -234,6 +226,12 @@ void loop() {
     Serial.print(" ("); 
     Serial.print(millisNow - lastRadioRxTime); 
     Serial.println(" ms ago)");
+
+    writeMotor(0, 0, 0); 
+    writeExteriorLights(0, 0, 0, 0); 
+    writeInteriorLights(0); 
+    writeHorn(0);
+    //TODO: signal that connections was lost (maybe flash LED / if connection was lost for more than X seconds together with horn?)
   }
 }
 
@@ -259,11 +257,11 @@ void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled) {
 } 
 
 void writeHorn(bool active) {
-  digitalWrite(PIN_HORN, active ? HIGH : LOW); 
+  writePin(PIN_HORN, active ? HIGH : LOW); 
 }
 
 void writeInteriorLights(bool active) {
-  digitalWrite(PIN_LIGHT_INTERIOR, active ? HIGH : LOW); 
+  writePin(PIN_LIGHT_INTERIOR, active ? HIGH : LOW); 
 }
 
 void writeFrontLightsWhite();
@@ -391,3 +389,18 @@ void writeLz1() {
   writeFrontLights(false, false, true, false, false); 
   writeRearLights(false, false, true, false, false);
 } 
+
+void debugInputs() {
+  Serial.print("lx: "); 
+  serialPrint(data.lx, 4);
+  Serial.print("   |   going forward: "); 
+  Serial.print(goingForward);
+  Serial.print("   |   low gear: "); 
+  Serial.print(lowGearEnabled);
+  Serial.print("   |   ly: "); 
+  serialPrint(data.ly, 4);
+  Serial.print("   |   pwm: "); 
+  uint8_t pwm = map(data.ly, 0, 1024, 0, 255);
+  serialPrint(pwm, 3);
+  Serial.println();
+}
