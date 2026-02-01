@@ -28,17 +28,18 @@
 
 #define PIN_LIGHT_INTERIOR 5
 
-#define PIN_LIGHT_FL_A 25
-#define PIN_LIGHT_FL_B 26
-#define PIN_LIGHT_FR_A 27
-#define PIN_LIGHT_FR_B 14 
-#define PIN_LIGHT_FT   12
+#define PIN_LIGHT_FL_A 12
+#define PIN_LIGHT_FL_B 14
+#define PIN_LIGHT_FT   27
+#define PIN_LIGHT_FR_A 26
+#define PIN_LIGHT_FR_B 25
 
-#define PIN_LIGHT_RL_A 17
-#define PIN_LIGHT_RL_B 16
-#define PIN_LIGHT_RR_A 4
-#define PIN_LIGHT_RR_B 0
-#define PIN_LIGHT_RT   2
+#define PIN_LIGHT_RL_A 2
+#define PIN_LIGHT_RL_B 0
+#define PIN_LIGHT_RT   4
+#define PIN_LIGHT_RR_A 16
+#define PIN_LIGHT_RR_B 17
+
 
 //Radio setup 
 RF24 radio(PIN_CE, PIN_CSN); // CE, CSN
@@ -120,6 +121,33 @@ void setup() {
   Serial.println(SAFE_MODE ? "enabled, all Pin-Interactions disabled" : "disabled, Pin-Interactions enabled"); 
 
   //Set Pin Modes
+  pinMode(PIN_HORN, OUTPUT);
+  pinMode(PIN_LIGHT_INTERIOR, OUTPUT); 
+  pinMode(PIN_LIGHT_FL_A, OUTPUT); 
+  pinMode(PIN_LIGHT_FL_B, OUTPUT); 
+  pinMode(PIN_LIGHT_FR_A, OUTPUT); 
+  pinMode(PIN_LIGHT_FR_B, OUTPUT); 
+  pinMode(PIN_LIGHT_FT, OUTPUT); 
+  pinMode(PIN_LIGHT_RL_A, OUTPUT); 
+  pinMode(PIN_LIGHT_RL_B, OUTPUT); 
+  pinMode(PIN_LIGHT_RR_A, OUTPUT); 
+  pinMode(PIN_LIGHT_RR_B, OUTPUT); 
+  pinMode(PIN_LIGHT_RT, OUTPUT); 
+  
+  //Write Pins LOW 
+  digitalWrite(PIN_HORN, LOW);
+  digitalWrite(PIN_LIGHT_INTERIOR, LOW); 
+  digitalWrite(PIN_LIGHT_FL_A, LOW); 
+  digitalWrite(PIN_LIGHT_FL_B, LOW); 
+  digitalWrite(PIN_LIGHT_FR_A, LOW); 
+  digitalWrite(PIN_LIGHT_FR_B, LOW); 
+  digitalWrite(PIN_LIGHT_FT, LOW); 
+  digitalWrite(PIN_LIGHT_RL_A, LOW); 
+  digitalWrite(PIN_LIGHT_RL_B, LOW); 
+  digitalWrite(PIN_LIGHT_RR_A, LOW); 
+  digitalWrite(PIN_LIGHT_RR_B, LOW); 
+  digitalWrite(PIN_LIGHT_RT, LOW); 
+  
   
   Serial.println("Setup - End");
 
