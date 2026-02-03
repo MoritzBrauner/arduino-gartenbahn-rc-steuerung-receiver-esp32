@@ -9,7 +9,7 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 
 ## 🧩 ESP32 Dev Board Pinout (Übersicht)
 
-![ESP32 Dev Board Pinout](.docs/images/pinout.png)
+![ESP32 Dev Board Pinout](docs/images/pinout.png)
 
 > ℹ️ Stelle sicher, dass sich das Bild im Repository befindet (z. B. im Root-Verzeichnis oder unter `/docs/images/`) und passe ggf. den Pfad an.
 
