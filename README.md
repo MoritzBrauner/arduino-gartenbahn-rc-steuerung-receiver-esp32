@@ -19,7 +19,7 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 
 Die folgende Tabelle zeigt, welche GPIOs **sicher nutzbar** sind und bei welchen Pins besondere Vorsicht geboten ist.
 
-| Bezeichnung | GPIO | Sicher? | Grund | Assigned to |
+| Bezeichnung | GPIO | Sicher? | Grund | Zugewiesen |
 |------|------|--------------|--------|--------|
 | D0 | 0 | ⚠️ eingeschränkt | Must be **HIGH during boot**, **LOW for programming** | 
 | TX0 | 1 | ❌ | TX pin, used for flashing and debugging |
