@@ -24,7 +24,7 @@
 #define PIN_PWM_FORWARD 32 
 #define PIN_PWM_BACKWARD 33
 
-#define PIN_HORN 15
+#define PIN_HORN 2
 
 #define PIN_LIGHT_INTERIOR 5
 
@@ -34,11 +34,11 @@
 #define PIN_LIGHT_FR_A 26
 #define PIN_LIGHT_FR_B 25
 
-#define PIN_LIGHT_RL_A 2
-#define PIN_LIGHT_RL_B 0
-#define PIN_LIGHT_RT   4
-#define PIN_LIGHT_RR_A 16
-#define PIN_LIGHT_RR_B 17
+#define PIN_LIGHT_RL_A 0
+#define PIN_LIGHT_RL_B 4
+#define PIN_LIGHT_RT   16
+#define PIN_LIGHT_RR_A 17
+#define PIN_LIGHT_RR_B 5
 
 
 //Radio setup 
