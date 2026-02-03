@@ -14,10 +14,35 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 ---
 
 ## ⚠️ GPIO-Pins – Belegung: 
+| Belegung        | Pin |      | Pin | Belegung        |
+|-----------------|-----|------|-----|-----------------|
+| Leiste Außen   | 3V3 |      | GND | Leiste Innen   |
+| X              | EN  |      | 23  | NRF24          |
+| X              | 36  |      | 22  | NRF24          |
+| X              | 39  |      | 1   | X              |
+| X              | 34  |      | 3   | X              |
+| X              | 35  |      | 21  | NRF24          |
+| PWM 1          | 32  |      | GND | X              |
+| PWM 2          | 33  |      | 19  | NRF24          |
+| FRB            | 25  |      | 18  | NRF24          |
+| FRA            | 26  |      | 5   | Horn           |
+| FT             | 27  |      | 17  | RRB            |
+| FLB            | 14  |      | 16  | RRA            |
+| FLA            | 12  |      | 4   | RT             |
+| X              | GND |      | 0   | RLB            |
+| X              | 13  |      | 2   | RLA            |
+| X              | 9   |      | 15  | INT            |
+| X              | 10  |      | 8   | X              |
+| X              | 11  |      | 7   | X              |
+| Power IN       | 5V  |      | 6   | X              |
+
+
+
+huhu
 
 | Bezeichnung | GPIO | Sicher? | Grund | Zugewiesen |
 |------|------|--------------|--------|--------|
-| D0 | 0 | ⚠️ eingeschränkt | Must be **HIGH during boot**, **LOW for programming** | 
+| D0 | 0 | ⚠️ eingeschränkt | Must be **HIGH during boot**, **LOW for programming** |  | 
 | TX0 | 1 | ❌ | TX pin, used for flashing and debugging |
 | D2 | 2 | ⚠️ eingeschränkt | Must be **LOW during boot**, connected to on-board LED |
 | RX0 | 3 | ❌ | RX pin, used for flashing and debugging |
