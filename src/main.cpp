@@ -231,7 +231,7 @@ void loop() {
     writeExteriorLights(0, 0, 0, 0); 
     writeInteriorLights(0); 
     writeHorn(0);
-    //TODO: signal that connections was lost (maybe flash LED / if connection was lost for more than X seconds together with horn?)
+    //TODO: signal that connection was lost (maybe flash LED / if connection was lost for more than X seconds together with horn?)
   }
 }
 
@@ -257,11 +257,11 @@ void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled) {
 } 
 
 void writeHorn(bool active) {
-  writePin(PIN_HORN, active ? HIGH : LOW); 
+  writePin(PIN_HORN, active); 
 }
 
 void writeInteriorLights(bool active) {
-  writePin(PIN_LIGHT_INTERIOR, active ? HIGH : LOW); 
+  writePin(PIN_LIGHT_INTERIOR, active); 
 }
 
 void writeFrontLightsWhite();

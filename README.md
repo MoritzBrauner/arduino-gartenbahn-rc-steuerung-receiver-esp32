@@ -14,8 +14,8 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 ---
 
 ## ⚠️ GPIO-Pins – Belegung: 
-| Belegung        | Pin |      | Pin | Belegung        |
-|-----------------|-----|------|-----|-----------------|
+|  Belegung      | Pin |------| Pin | Belegung        |
+|----------------|-----|------|-----|-----------------|
 | Leiste Außen   | 3V3 |      | GND | Leiste Innen   |
 | -              | EN  |      | 23  | NRF24          |
 | -              | 36  |      | 22  | NRF24          |
