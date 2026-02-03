@@ -17,24 +17,24 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 | Belegung        | Pin |      | Pin | Belegung        |
 |-----------------|-----|------|-----|-----------------|
 | Leiste Außen   | 3V3 |      | GND | Leiste Innen   |
-| X              | EN  |      | 23  | NRF24          |
-| X              | 36  |      | 22  | NRF24          |
-| X              | 39  |      | 1   | X              |
-| X              | 34  |      | 3   | X              |
-| X              | 35  |      | 21  | NRF24          |
-| PWM 1          | 32  |      | GND | X              |
+| -              | EN  |      | 23  | NRF24          |
+| -              | 36  |      | 22  | NRF24          |
+| -              | 39  |      | 1   | -              |
+| -              | 34  |      | 3   | -              |
+| -              | 35  |      | 21  | NRF24          |
+| PWM 1          | 32  |      | GND | -              |
 | PWM 2          | 33  |      | 19  | NRF24          |
 | FRB            | 25  |      | 18  | NRF24          |
 | FRA            | 26  |      | 5   | Horn           |
 | FT             | 27  |      | 17  | RRB            |
 | FLB            | 14  |      | 16  | RRA            |
 | FLA            | 12  |      | 4   | RT             |
-| X              | GND |      | 0   | RLB            |
-| X              | 13  |      | 2   | RLA            |
-| X              | 9   |      | 15  | INT            |
-| X              | 10  |      | 8   | X              |
-| X              | 11  |      | 7   | X              |
-| Power IN       | 5V  |      | 6   | X              |
+| -              | GND |      | 0   | RLB            |
+| -              | 13  |      | 2   | RLA            |
+| -              | 9   |      | 15  | INT            |
+| -              | 10  |      | 8   | -              |
+| -              | 11  |      | 7   | -              |
+| Power IN       | 5V  |      | 6   | -              |
 
 
 
