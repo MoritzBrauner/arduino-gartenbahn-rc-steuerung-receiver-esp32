@@ -26,7 +26,7 @@
 
 #define PIN_HORN 2
 
-#define PIN_LIGHT_INTERIOR 5
+#define PIN_LIGHT_INTERIOR 15
 
 #define PIN_LIGHT_FL_A 12
 #define PIN_LIGHT_FL_B 14
