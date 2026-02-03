@@ -7,10 +7,6 @@ Projekt basiert auf einem **ESP32 NodeMCU Dev Board** als Empfänger für Garten
 ## ESP32 Pinout Referenz: 
 https://lastminuteengineers.com/esp32-pinout-reference/
 
-## ESP32 Dev Board Pinout
-
-![ESP32 Dev Board Pinout](docs/images/pinout.png)
-
 ---
 
 ## GPIO-Pins – Belegung: 
@@ -40,38 +36,44 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 
 ---
 
-| Bezeichnung | GPIO | Sicher?            | Grund                                                                 |
-|-------------|------|--------------------|-----------------------------------------------------------------------|
-| D0          | 0    | ⚠️ eingeschränkt  | Muss **HIGH beim Booten** sein, **LOW zum Programmieren**              |
-| TX0         | 1    | ❌                 | TX-Pin, wird zum Flashen und Debuggen verwendet                       |
-| D2          | 2    | ⚠️ eingeschränkt  | Muss **LOW beim Booten** sein, verbunden mit der On-Board-LED          |
-| RX0         | 3    | ❌                 | RX-Pin, wird zum Flashen und Debuggen verwendet                       |
-| D4          | 4    | ✅                 | —                                                                     |
-| D5          | 5    | ⚠️ eingeschränkt  | Muss **HIGH beim Booten** sein                                         |
-| D6          | 6    | ❌                 | Mit Flash-Speicher verbunden                                          |
-| D7          | 7    | ❌                 | Mit Flash-Speicher verbunden                                          |
-| D8          | 8    | ❌                 | Mit Flash-Speicher verbunden                                          |
-| D9          | 9    | ❌                 | Mit Flash-Speicher verbunden                                          |
-| D10         | 10   | ❌                 | Mit Flash-Speicher verbunden                                          |
-| D11         | 11   | ❌                 | Mit Flash-Speicher verbunden                                          |
-| D12         | 12   | ⚠️ eingeschränkt  | Muss **LOW beim Booten** sein                                          |
-| D13         | 13   | ✅                 | —                                                                     |
-| D14         | 14   | ✅                 | —                                                                     |
-| D15         | 15   | ⚠️ eingeschränkt  | Muss **HIGH beim Booten** sein, LOW deaktiviert das Start-Log          |
-| RX2         | 16   | ✅                 | —                                                                     |
-| TX2         | 17   | ✅                 | —                                                                     |
-| D18         | 18   | ✅                 | —                                                                     |
-| D19         | 19   | ✅                 | —                                                                     |
-| D21         | 21   | ✅                 | —                                                                     |
-| D22         | 22   | ✅                 | —                                                                     |
-| D23         | 23   | ✅                 | —                                                                     |
-| D25         | 25   | ✅                 | —                                                                     |
-| D26         | 26   | ✅                 | —                                                                     |
-| D27         | 27   | ✅                 | —                                                                     |
-| D32         | 32   | ✅                 | —                                                                     |
-| D33         | 33   | ✅                 | —                                                                     |
-| D34         | 34   | ❌                 | GPIO nur als Eingang nutzbar                                          |
-| D35         | 35   | ❌                 | GPIO nur als Eingang nutzbar                                          |
-| VP          | 36   | ❌                 | GPIO nur als Eingang nutzbar                                          |
-| VN          | 39   | ❌                 | GPIO nur als Eingang nutzbar                                          |
+## GPIO-Pins – Tabelle: 
+| Bezeichnung | GPIO | Sicher? | Grund                                                                 |
+|-------------|------|---------|-----------------------------------------------------------------------|
+| D0          | 0    | ⚠️     | Muss **HIGH beim Booten** sein, **LOW zum Programmieren**              |
+| TX0         | 1    | ❌     | TX-Pin, wird zum Flashen und Debuggen verwendet                       |
+| D2          | 2    | ⚠️     | Muss **LOW beim Booten** sein, verbunden mit der On-Board-LED          |
+| RX0         | 3    | ❌     | RX-Pin, wird zum Flashen und Debuggen verwendet                       |
+| D4          | 4    | ✅     | —                                                                     |
+| D5          | 5    | ⚠️     | Muss **HIGH beim Booten** sein                                         |
+| D6          | 6    | ❌     | Mit Flash-Speicher verbunden                                          |
+| D7          | 7    | ❌     | Mit Flash-Speicher verbunden                                          |
+| D8          | 8    | ❌     | Mit Flash-Speicher verbunden                                          |
+| D9          | 9    | ❌     | Mit Flash-Speicher verbunden                                          |
+| D10         | 10   | ❌     | Mit Flash-Speicher verbunden                                          |
+| D11         | 11   | ❌     | Mit Flash-Speicher verbunden                                          |
+| D12         | 12   | ⚠️     | Muss **LOW beim Booten** sein                                          |
+| D13         | 13   | ✅     | —                                                                     |
+| D14         | 14   | ✅     | —                                                                     |
+| D15         | 15   | ⚠️     | Muss **HIGH beim Booten** sein, LOW deaktiviert das Start-Log          |
+| RX2         | 16   | ✅     | —                                                                     |
+| TX2         | 17   | ✅     | —                                                                     |
+| D18         | 18   | ✅     | —                                                                     |
+| D19         | 19   | ✅     | —                                                                     |
+| D21         | 21   | ✅     | —                                                                     |
+| D22         | 22   | ✅     | —                                                                     |
+| D23         | 23   | ✅     | —                                                                     |
+| D25         | 25   | ✅     | —                                                                     |
+| D26         | 26   | ✅     | —                                                                     |
+| D27         | 27   | ✅     | —                                                                     |
+| D32         | 32   | ✅     | —                                                                     |
+| D33         | 33   | ✅     | —                                                                     |
+| D34         | 34   | ❌     | GPIO nur als Eingang nutzbar                                          |
+| D35         | 35   | ❌     | GPIO nur als Eingang nutzbar                                          |
+| VP          | 36   | ❌     | GPIO nur als Eingang nutzbar                                          |
+| VN          | 39   | ❌     | GPIO nur als Eingang nutzbar                                          |
 
+---
+
+## ESP32 Dev Board Pinout
+
+![ESP32 Dev Board Pinout](docs/images/pinout.png)
