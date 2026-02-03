@@ -1,6 +1,6 @@
 ## ESP32 Gartenbahn RC-Receiver
 
-Dieses Projekt basiert auf einem **ESP32 Dev Board** und dient als Empfänger für die Arduino-basierte Gartenbahn-RC-Steuerung.
+Projekt basiert auf einem **ESP32 NodeMCU Dev Board** als Empfänger für Gartenbahn-RC-Steuerung.
 
 ---
 
