@@ -7,17 +7,13 @@ Projekt basiert auf einem **ESP32 NodeMCU Dev Board** als Empfänger für Garten
 ## ESP32 Pinout Referenz: 
 https://lastminuteengineers.com/esp32-pinout-reference/
 
-## 🧩 ESP32 Dev Board Pinout (Übersicht)
+## 🧩 ESP32 Dev Board Pinout
 
-![ESP32 Dev Board Pinout](./d8007507-7d27-4124-92f5-79e3ae0863d9.png)
-
-> ℹ️ Stelle sicher, dass sich das Bild im Repository befindet (z. B. im Root-Verzeichnis oder unter `/docs/images/`) und passe ggf. den Pfad an.
+![ESP32 Dev Board Pinout](docs/images/pinout.png)
 
 ---
 
-## ⚠️ GPIO-Pins – Nutzung & Einschränkungen
-
-Die folgende Tabelle zeigt, welche GPIOs **sicher nutzbar** sind und bei welchen Pins besondere Vorsicht geboten ist.
+## ⚠️ GPIO-Pins – Belegung: 
 
 | Bezeichnung | GPIO | Sicher? | Grund | Zugewiesen |
 |------|------|--------------|--------|--------|
