@@ -7,13 +7,13 @@ Projekt basiert auf einem **ESP32 NodeMCU Dev Board** als Empfänger für Garten
 ## ESP32 Pinout Referenz: 
 https://lastminuteengineers.com/esp32-pinout-reference/
 
-## 🧩 ESP32 Dev Board Pinout
+## ESP32 Dev Board Pinout
 
 ![ESP32 Dev Board Pinout](docs/images/pinout.png)
 
 ---
 
-## ⚠️ GPIO-Pins – Belegung: 
+## GPIO-Pins – Belegung: 
 |  Belegung      | Pin |------| Pin | Belegung        |
 |----------------|-----|------|-----|-----------------|
 | Leiste Außen   | 3V3 |      | GND | Leiste Innen   |
@@ -38,7 +38,7 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 
 
 
-huhu
+---
 
 | Bezeichnung | GPIO | Sicher? | Grund | Zugewiesen |
 |------|------|--------------|--------|--------|
