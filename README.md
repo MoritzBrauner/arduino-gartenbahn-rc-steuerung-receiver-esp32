@@ -21,12 +21,12 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 | PWM 1          | 32  |      | GND | -              |
 | PWM 2          | 33  |      | 19  | NRF24          |
 | Licht FRB            | 25  |      | 18  | NRF24          |
-| Licht FRA            | 26  |      | 5   | Horn           |
-| Licht FT             | 27  |      | 17  | Licht RRB            |
-| Licht FLB            | 14  |      | 16  | Licht RRA            |
-| Licht FLA            | 12  |      | 4   | Licht RT             |
-| -              | GND |      | 0   | Licht RLB            |
-| -              | 13  |      | 2   | Licht RLA            |
+| Licht FRA            | 26  |      | 5   | Licht RRB      |
+| Licht FT             | 27  |      | 17  | Licht RRA            |
+| Licht FLB            | 14  |      | 16  | Licht RT            |
+| Licht FLA            | 12  |      | 4   | Licht RLB             |
+| -              | GND |      | 0   | Licht RLA            |
+| -              | 13  |      | 2   | Horn            |
 | -              | 9   |      | 15  | Licht innen            |
 | -              | 10  |      | 8   | -              |
 | -              | 11  |      | 7   | -              |
