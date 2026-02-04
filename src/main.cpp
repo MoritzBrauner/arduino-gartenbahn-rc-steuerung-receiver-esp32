@@ -100,6 +100,7 @@ void setup() {
   
   //Set up OTA 
   connectAP(); 
+  delay(500); 
   ArduinoOTA.begin(); 
 
   //Initialize Radio Communication
