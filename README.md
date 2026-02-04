@@ -4,6 +4,11 @@ Projekt basiert auf einem **ESP32 NodeMCU Dev Board** als Empfänger für Garten
 
 ---
 
+## OTA-Updates: 
+Lokale IP: 192.168.1.108
+
+---
+
 ## ESP32 Pinout Referenz: 
 https://lastminuteengineers.com/esp32-pinout-reference/
 
@@ -18,8 +23,8 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 | -              |      | 39  |      | 1   |      | -               |
 | -              |      | 34  |      | 3   |      | -               |
 | -              |      | 35  |      | 21  |  📡    | NRF24 CSN       |
-| PWM 1          |  🛞  | 32  |      | GND |      | -              |
-| PWM 2          |  🛞  | 33  |      | 19  |  📡    | NRF24 MISO     |
+| PWM 1          |  ⬆️ | 32  |      | GND |      | -              |
+| PWM 2          |  ⬇️ | 33  |      | 19  |  📡    | NRF24 MISO     |
 | Licht FRB      |  💡  | 25  |      | 18  |  📡    | NRF24 SCK      |
 | Licht FRA      |  💡  | 26  |      | 5   |  💡  | Licht RRB      |
 | Licht FT       |  💡  | 27  |      | 17  |  💡  | Licht RRA      |
