@@ -3,6 +3,10 @@
 #include <nRF24L01.h> 
 #include <RF24.h> 
 
+#include <ArduinoOTA.h>
+#include <WiFiUdp.h>
+#include <wifimqtt.h>
+
 #define SAFE_MODE false
 #define DEBUG_MODE false
 
@@ -92,7 +96,11 @@ void debugInputs();
 void setup() {  
   Serial.begin(115200);
   Serial.println("Program: RC Receiver ESP32");
-  Serial.println("Setup - Start");  
+  Serial.println("Setup - Start");
+  
+  //Set up OTA 
+  connectAP(); 
+  ArduinoOTA.begin(); 
 
   //Initialize Radio Communication
   bool radioInitStatus = radio.begin();
@@ -162,7 +170,8 @@ void loop() {
 
   //RX: Kabinenbeleuchtung  < / FZ1 (1 weiße Leuchte auf Pufferhöhe) > 
   //RY: Umschalten Hecklichter / Licht an/aus 
-  //RZ: Hauptschalter?  / Rangierschalter (langsamere V-max)? 
+  //RZ: Hauptschalter?  / Rangierschalter (langsamere V-max)?
+  ArduinoOTA.handle();  
 
   if (radio.available()) {
     radio.read(&data, sizeof(Data_Package));
