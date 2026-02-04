@@ -12,25 +12,25 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 ## GPIO-Pins – Belegung: 
 |  Belegung      | Pin |------| Pin | Belegung        |
 |----------------|-----|------|-----|-----------------|
-| Leiste Außen   | 3V3 |      | GND | Leiste Innen   |
-| -              | EN  |      | 23  | NRF24          |
-| -              | 36  |      | 22  | NRF24          |
-| -              | 39  |      | 1   | -              |
-| -              | 34  |      | 3   | -              |
-| -              | 35  |      | 21  | NRF24          |
-| PWM 1          | 32  |      | GND | -              |
-| PWM 2          | 33  |      | 19  | NRF24          |
-| Licht FRB            | 25  |      | 18  | NRF24          |
-| Licht FRA            | 26  |      | 5   | Licht RRB      |
-| Licht FT             | 27  |      | 17  | Licht RRA            |
-| Licht FLB            | 14  |      | 16  | Licht RT            |
-| Licht FLA            | 12  |      | 4   | Licht RLB             |
-| -              | GND |      | 0   | Licht RLA            |
+| Leiste Außen   | 3V3 |      | GND | Leiste Innen    |
+| -              | EN  |      | 23  | NRF24 MOSI      |
+| -              | 36  |      | 22  | NRF24 CE        |
+| -              | 39  |      | 1   | -               |
+| -              | 34  |      | 3   | -               |
+| -              | 35  |      | 21  | NRF24 CSN       |
+| PWM 1          | 32  |      | GND | -               |
+| PWM 2          | 33  |      | 19  | NRF24 MISO      |
+| Licht FRB      | 25  |      | 18  | NRF24 SCK       |
+| Licht FRA      | 26  |      | 5   | Licht RRB       |
+| Licht FT       | 27  |      | 17  | Licht RRA       |
+| Licht FLB      | 14  |      | 16  | Licht RT        |
+| Licht FLA      | 12  |      | 4   | Licht RLB       |
+| -              | GND |      | 0   | Licht RLA       |
 | -              | 13  |      | 2   | Horn            |
-| -              | 9   |      | 15  | Licht innen            |
-| -              | 10  |      | 8   | -              |
-| -              | 11  |      | 7   | -              |
-| Power IN       | 5V  |      | 6   | -              |
+| -              | 9   |      | 15  | Licht innen     |
+| -              | 10  |      | 8   | -               |
+| -              | 11  |      | 7   | -               |
+| Power IN       | 5V  |      | 6   | -               |
 
 
 
