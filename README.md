@@ -79,6 +79,6 @@ https://lastminuteengineers.com/esp32-pinout-reference/
 
 ---
 
-## ESP32 Dev Board Pinout
+## ESP32 NodeMCU Pinout
 
 ![ESP32 Dev Board Pinout](docs/images/pinout.png)
