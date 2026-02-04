@@ -2,10 +2,10 @@
 #include <Arduino.h>
 #include <nRF24L01.h> 
 #include <RF24.h> 
-
 #include <ArduinoOTA.h>
 #include <WiFiUdp.h>
 #include <wifimqtt.h>
+#include <pins.h> //pin declarations
 
 #define SAFE_MODE false
 #define DEBUG_MODE false
@@ -14,36 +14,12 @@
 
 #define DEFAULT_ANALOG_VALUE 512
 #define DEFAULT_DIGITAL_VALUE 0
-#define DEFAULT_STICK_TOLERANCE 256
+#define DEFAULT_STICK_THRESHOLD 256
 
 #define PWM_FREQUENCY 5000
 #define PWM_RESOLUTION 8
 #define CHANNEL_A 0
 #define CHANNEL_B 1
-
-//Pin Declarations
-#define PIN_CE  22
-#define PIN_CSN 21
-
-#define PIN_PWM_FORWARD 32 
-#define PIN_PWM_BACKWARD 33
-
-#define PIN_HORN 2
-
-#define PIN_LIGHT_INTERIOR 15
-
-#define PIN_LIGHT_FL_A 12
-#define PIN_LIGHT_FL_B 14
-#define PIN_LIGHT_FT   27
-#define PIN_LIGHT_FR_A 26
-#define PIN_LIGHT_FR_B 25
-
-#define PIN_LIGHT_RL_A 0
-#define PIN_LIGHT_RL_B 4
-#define PIN_LIGHT_RT   16
-#define PIN_LIGHT_RR_A 17
-#define PIN_LIGHT_RR_B 5
-
 
 //Radio setup 
 RF24 radio(PIN_CE, PIN_CSN); // CE, CSN
@@ -131,36 +107,8 @@ void setup() {
   Serial.print("SAFE MODE ");
   Serial.println(SAFE_MODE ? "enabled, all Pin-Interactions disabled" : "disabled, Pin-Interactions enabled"); 
 
-  //Set Pin Modes
-  Serial.println("Setting pin modes...");
-  pinMode(PIN_HORN, OUTPUT);
-  pinMode(PIN_LIGHT_INTERIOR, OUTPUT); 
-  pinMode(PIN_LIGHT_FL_A, OUTPUT); 
-  pinMode(PIN_LIGHT_FL_B, OUTPUT); 
-  pinMode(PIN_LIGHT_FR_A, OUTPUT); 
-  pinMode(PIN_LIGHT_FR_B, OUTPUT); 
-  pinMode(PIN_LIGHT_FT, OUTPUT); 
-  pinMode(PIN_LIGHT_RL_A, OUTPUT); 
-  pinMode(PIN_LIGHT_RL_B, OUTPUT); 
-  pinMode(PIN_LIGHT_RR_A, OUTPUT); 
-  pinMode(PIN_LIGHT_RR_B, OUTPUT); 
-  pinMode(PIN_LIGHT_RT, OUTPUT); 
-  
-  //Write all Pins LOW 
-  Serial.println("Writing pins low...");
-  writePin(PIN_HORN, LOW);
-  writePin(PIN_LIGHT_INTERIOR, LOW); 
-  writePin(PIN_LIGHT_FL_A, LOW); 
-  writePin(PIN_LIGHT_FL_B, LOW); 
-  writePin(PIN_LIGHT_FR_A, LOW); 
-  writePin(PIN_LIGHT_FR_B, LOW); 
-  writePin(PIN_LIGHT_FT, LOW); 
-  writePin(PIN_LIGHT_RL_A, LOW); 
-  writePin(PIN_LIGHT_RL_B, LOW); 
-  writePin(PIN_LIGHT_RR_A, LOW); 
-  writePin(PIN_LIGHT_RR_B, LOW); 
-  writePin(PIN_LIGHT_RT, LOW); 
-  
+  initPins(); //Set pin Modes and write LOW  
+
   Serial.println("Setup - End");
 }
 
@@ -236,11 +184,10 @@ void loop() {
     Serial.print(" ("); 
     Serial.print(millisNow - lastRadioRxTime); 
     Serial.println(" ms ago)");
-
     writeMotor(0, 0, 0); 
     writeExteriorLights(0, 0, 0, 0); 
-    writeInteriorLights(0); 
     writeHorn(0);
+
     //TODO: signal that connection was lost (maybe flash LED / if connection was lost for more than X seconds together with horn?)
   }
 }
@@ -331,7 +278,7 @@ HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELP
 -------------------------------------------------------------------------------------------------------------*/
 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut) {
-  if (data < DEFAULT_STICK_TOLERANCE) {
+  if (data < DEFAULT_STICK_THRESHOLD) {
     if (!lockVar) {
       outPut = !outPut;
       lockVar = true; 
@@ -342,7 +289,7 @@ void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut) {
 }
 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut) {
-  if (data > 1024 - DEFAULT_STICK_TOLERANCE) {
+  if (data > 1024 - DEFAULT_STICK_THRESHOLD) {
     if (!lockVar) {
       outPut = !outPut;
       lockVar = true; 
