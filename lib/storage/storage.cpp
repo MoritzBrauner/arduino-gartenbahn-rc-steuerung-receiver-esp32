@@ -45,12 +45,7 @@ Preferences_Data_Struct initPreferences() {
     result.exteriorLightsActive = preferences.getBool(EXTERIOR_LIGHTS_ACTIVE, false);
     result.rearLightsActive     = preferences.getBool(REAR_LIGHTS_ACTIVE, false);
     result.lz1Active            = preferences.getBool(LZ1_ACTIVE, false);
-
-    Serial.print("Interior light state: ");
-    Serial.println(preferences.getBool(REAR_LIGHTS_ACTIVE)); 
-
     preferences.end();
-
     return result;
 }
 

@@ -4,8 +4,14 @@ Projekt basiert auf einem **ESP32 NodeMCU Dev Board** als Empfänger für Garten
 
 ---
 
-## OTA-Updates: 
+## Features:
+
+#### OTA-Updates: 
 Lokale IP: 192.168.1.108
+
+#### Preferences
+
+Speicherung von Licht-Zuständen neustartübergreifen mit der  '***Preferences***' Lib
 
 ---
 
