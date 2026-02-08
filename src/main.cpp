@@ -5,6 +5,7 @@
 #include <ArduinoOTA.h>
 #include <WiFiUdp.h>
 #include <wifimqtt.h>
+#include <storage.h>
 #include <pins.h> //pin declarations
 
 #define SAFE_MODE false
@@ -57,7 +58,7 @@ bool rylIsIgnored = false;
 bool rearLightsActive = false;  
 
 bool ryuIsIgnored = false;
-bool lightsActive = false; 
+bool exteriorLightsActive = false; 
 
 void writePin(uint8_t pin, bool status);
 void serialPrint(int number, int places);
@@ -107,7 +108,15 @@ void setup() {
   Serial.print("SAFE MODE ");
   Serial.println(SAFE_MODE ? "enabled, all Pin-Interactions disabled" : "disabled, Pin-Interactions enabled"); 
 
-  initPins(); //Set pin Modes and write LOW  
+  //Set pin Modes and write LOW
+  initPins();
+  
+  //Set up preferences, init light states 
+  Preferences_Data_Struct savedStates = initPreferences();
+  exteriorLightsActive = savedStates.exteriorLightsActive; 
+  interiorLightsActive = savedStates.interiorLightsActive; 
+  rearLightsActive = savedStates.rearLightsActive; 
+  lz1Active = savedStates.lz1Active; 
 
   Serial.println("Setup - End");
 }
@@ -120,7 +129,7 @@ void loop() {
   //RX: Kabinenbeleuchtung  < / FZ1 (1 weiße Leuchte auf Pufferhöhe) > 
   //RY: Umschalten Hecklichter / Licht an/aus 
   //RZ: Hauptschalter?  / Rangierschalter (langsamere V-max)?
-  ArduinoOTA.handle();  
+  ArduinoOTA.handle(); 
 
   if (radio.available()) {
     radio.read(&data, sizeof(Data_Package));
@@ -159,7 +168,7 @@ void loop() {
     handleLowerStickInput_0_512(data.ry, rylIsIgnored, rearLightsActive); 
     
     //RY - Upper (>512)
-    handleUpperStickInput_512_1024(data.ry, ryuIsIgnored, lightsActive); 
+    handleUpperStickInput_512_1024(data.ry, ryuIsIgnored, exteriorLightsActive); 
 
     //RZ
     lowGearEnabled = !data.rz; 
@@ -168,22 +177,28 @@ void loop() {
       debugInputs(); 
     }
 
+    //falsch: 
+   //storeLightStates(Preferences_Data_Struct{(true, exteriorLightsActive, rearLightsActive, lz1Active)}); 
+
+    //richtig: 
+    storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
+
     if (!SAFE_MODE) {
       writeMotor(pwm, goingForward, lowGearEnabled); 
-      writeExteriorLights(goingForward, lightsActive, rearLightsActive, lz1Active); 
+      writeExteriorLights(goingForward, exteriorLightsActive, rearLightsActive, lz1Active); 
       writeInteriorLights(interiorLightsActive); 
       writeHorn(hornActive);  
     }
 
   } else {
-    long millisNow = millis(); 
-    Serial.print("Data too old. Last data received at: ");
-    Serial.print(lastRadioRxTime);
-    Serial.print(" Current timestamp: "); 
-    Serial.print(millisNow);
-    Serial.print(" ("); 
-    Serial.print(millisNow - lastRadioRxTime); 
-    Serial.println(" ms ago)");
+    //long millisNow = millis(); 
+    //Serial.print("Data too old. Last data received at: ");
+    //Serial.print(lastRadioRxTime);
+    //Serial.print(" Current timestamp: "); 
+    //Serial.print(millisNow);
+    //Serial.print(" ("); 
+    //Serial.print(millisNow - lastRadioRxTime); 
+    //Serial.println(" ms ago)");
     writeMotor(0, 0, 0); 
     writeExteriorLights(0, 0, 0, 0); 
     writeHorn(0);
