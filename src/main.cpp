@@ -5,7 +5,7 @@
 #include <ArduinoOTA.h>
 #include <WiFiUdp.h>
 #include <wifimqtt.h>
-#include <storage.h>
+#include <storage.h> //preferences handling
 #include <pins.h> //pin declarations
 
 #define SAFE_MODE false
