@@ -27,7 +27,6 @@
 
 void initPins();
 
-void writePin(uint8_t pin, bool status);
 void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active); 
 void writeInteriorLights(bool active); 
 void writeHorn(bool active);

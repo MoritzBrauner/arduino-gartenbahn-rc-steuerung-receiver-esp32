@@ -69,6 +69,7 @@ void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled);
 
 void setup() {  
   Serial.begin(115200);
+  Serial.println(); 
   Serial.println("Program: RC Receiver ESP32");
   Serial.println("Setup - Start");
 
@@ -179,8 +180,7 @@ void loop() {
     }
 
     //falsch: 
-   //storeLightStates(Preferences_Data_Struct{(true, exteriorLightsActive, rearLightsActive, lz1Active)}); 
-
+    //storeLightStates(Preferences_Data_Struct{(true, exteriorLightsActive, rearLightsActive, lz1Active)}); 
     //richtig: 
     storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
 
