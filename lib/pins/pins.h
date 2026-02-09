@@ -1,6 +1,8 @@
 #ifndef PINS_H
 #define PINS_H
 
+#include <Arduino.h>
+
 #define PIN_CE  22
 #define PIN_CSN 21
 
@@ -24,5 +26,10 @@
 #define PIN_LIGHT_RR_B 5
 
 void initPins();
+
+void writePin(uint8_t pin, bool status);
+void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active); 
+void writeInteriorLights(bool active); 
+void writeHorn(bool active);
 
 #endif

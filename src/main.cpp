@@ -60,25 +60,17 @@ bool rearLightsActive = false;
 bool ryuIsIgnored = false;
 bool exteriorLightsActive = false; 
 
-void writePin(uint8_t pin, bool status);
-void serialPrint(int number, int places);
-void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled); 
-void writeHorn(bool active);
-void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active); 
-void writeInteriorLights(bool active); 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
 void debugInputs();
+
+void serialPrint(int number, int places);
+void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled); 
 
 void setup() {  
   Serial.begin(115200);
   Serial.println("Program: RC Receiver ESP32");
   Serial.println("Setup - Start");
-  
-  //Set up OTA 
-  connectAP(); 
-  delay(500); 
-  ArduinoOTA.begin(); 
 
   //Initialize Radio Communication
   bool radioInitStatus = radio.begin();
@@ -117,6 +109,15 @@ void setup() {
   interiorLightsActive = savedStates.interiorLightsActive; 
   rearLightsActive = savedStates.rearLightsActive; 
   lz1Active = savedStates.lz1Active; 
+  if (!SAFE_MODE) {
+    writeInteriorLights(interiorLightsActive); 
+    writeExteriorLights(goingForward, exteriorLightsActive, rearLightsActive, lz1Active);
+  }
+
+  //Set up OTA 
+  connectAP(); 
+  delay(500); 
+  ArduinoOTA.begin(); 
 
   Serial.println("Setup - End");
 }
@@ -228,56 +229,7 @@ void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled) {
   }
 } 
 
-void writeHorn(bool active) {
-  writePin(PIN_HORN, active); 
-}
 
-void writeInteriorLights(bool active) {
-  writePin(PIN_LIGHT_INTERIOR, active); 
-}
-
-void writeFrontLightsWhite();
-void writeFrontLightsRed();
-void writeFrontLightsOff();
-void writeRearLightsWhite();
-void writeRearLightsRed();
-void writeRearLightsOff();
-void writeLz1();
-
-void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active) {
-  if (lightsActive) {
-    if (lz1Active) {
-      //write LZ1
-      writeLz1();
-    } else {
-      if (direction) {
-        //write front lights white
-        writeFrontLightsWhite();
-        if (rearLightsActive) {
-          //write rear lights red
-          writeRearLightsRed();
-        } else {
-          //write rear lights off
-          writeRearLightsOff();
-        }
-      } else {
-        //write rear lights white
-        writeRearLightsWhite();
-        if (rearLightsActive) {
-          //Write front lights red
-          writeFrontLightsRed();
-        } else {
-          //write front lights off
-          writeFrontLightsOff();
-        }
-      }
-    }
-  } else {
-    //write all lights off
-    writeFrontLightsOff();
-    writeRearLightsOff(); 
-  }
-}
 
 void serialPrint(int number, int places) {
   char buffer[16];
@@ -287,10 +239,6 @@ void serialPrint(int number, int places) {
   snprintf(buffer, sizeof(buffer), format, number);
   Serial.print(buffer);
 }
-
-/*-------------------------------------------------------------------------------------------------------------
-HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS - HELPER FUNCTIONS
--------------------------------------------------------------------------------------------------------------*/
 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut) {
   if (data < DEFAULT_STICK_THRESHOLD) {
@@ -313,54 +261,6 @@ void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut) 
     lockVar = false; 
   }
 }
-
-void writePin(uint8_t pin, bool status) {
-  digitalWrite(pin, status ? HIGH : LOW); 
-}
-
-void writeFrontLights(bool fla, bool flb, bool fra, bool frb, bool ft) {
-  writePin(PIN_LIGHT_FL_A, fla);
-  writePin(PIN_LIGHT_FL_B, flb);
-  writePin(PIN_LIGHT_FR_A, fra);
-  writePin(PIN_LIGHT_FR_B, frb); 
-  writePin(PIN_LIGHT_FT,   ft);
-}
-
-void writeRearLights(bool rla, bool rlb, bool rra, bool rrb, bool rt) {  
-  writePin(PIN_LIGHT_RL_A, rla);
-  writePin(PIN_LIGHT_RL_B, rlb);
-  writePin(PIN_LIGHT_RR_A, rra);
-  writePin(PIN_LIGHT_RR_B, rrb);
-  writePin(PIN_LIGHT_RT,   rt);
-}
-
-void writeFrontLightsWhite() {
-  writeFrontLights(true, false, true, false, true); 
-}
-
-void writeFrontLightsRed() {
-  writeFrontLights(false, true, false, true, false); 
-}
-
-void writeFrontLightsOff() {
-  writeFrontLights(false, false, false, false, false); 
-} 
-
-void writeRearLightsWhite() {
-  writeRearLights(true, false, true, false, true); 
-} 
-void writeRearLightsRed() {
-  writeRearLights(false, true, false, true, false); 
-} 
-
-void writeRearLightsOff() {
-  writeRearLights(false, false, false, false, false); 
-} 
-
-void writeLz1() {
-  writeFrontLights(false, false, true, false, false); 
-  writeRearLights(false, false, true, false, false);
-} 
 
 void debugInputs() {
   Serial.print("lx: "); 
