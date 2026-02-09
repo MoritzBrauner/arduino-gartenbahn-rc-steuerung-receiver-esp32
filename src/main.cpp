@@ -7,6 +7,7 @@
 #include <wifimqtt.h>
 #include <storage.h> //preferences handling
 #include <pins.h> //pin declarations
+#include <Timer.h>
 
 #define SAFE_MODE false
 #define DEBUG_MODE false
@@ -62,6 +63,9 @@ bool rearLightsActive = false;
 
 bool ryuIsIgnored = false;
 bool exteriorLightsActive = false; 
+
+//Timer registration
+Timer pwmTimer(5); 
 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
@@ -225,18 +229,9 @@ void writeBackwardPWM(uint8_t pwm) {
   ledcWrite(CHANNEL_B, pwm); 
 }
 
-unsigned long lastTick = millis(); 
-bool timer(uint8_t ms) {
-  if (millis() >= lastTick + ms) {
-    lastTick = millis(); 
-    return true; 
-  }
-  return false; 
-}
-
 void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool lowGearEnabled) {
   targetPwm = lowGearEnabled ? targetPwm/2 : targetPwm; 
-  if (timer(5)) {
+  if (pwmTimer.fires()) {
     if (targetPwm > currentPwm) currentPwm++; 
     if (targetPwm < currentPwm) currentPwm--; 
   }
@@ -246,8 +241,6 @@ void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool low
     writeBackwardPWM(currentPwm); 
   }
 } 
-
-
 
 void serialPrint(int number, int places) {
   char buffer[16];
