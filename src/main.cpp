@@ -66,6 +66,7 @@ bool exteriorLightsActive = false;
 
 //Timer registration
 Timer pwmTimer(5); 
+Timer offlineTimer(500); 
 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
@@ -164,8 +165,6 @@ void loop() {
       } 
     }
 
-
-
     //LZ
     hornActive = data.lz;  
 
@@ -209,8 +208,13 @@ void loop() {
     //Serial.print(" ("); 
     //Serial.print(millisNow - lastRadioRxTime); 
     //Serial.println(" ms ago)");
-    writeMotor(0, currentPwm, 0, 0); 
-    writeExteriorLights(0, 0, 0, 0); 
+    
+    if (offlineTimer.fires()) {
+      interiorLightsActive = !interiorLightsActive; 
+    }
+    writeInteriorLights(interiorLightsActive); 
+    writeMotor(0, currentPwm, goingForward, 0); 
+    writeExteriorLights(0, 0, 0, 0);
     writeHorn(0);
 
     //TODO: signal that connection was lost (maybe flash LED / if connection was lost for more than X seconds together with horn?)
