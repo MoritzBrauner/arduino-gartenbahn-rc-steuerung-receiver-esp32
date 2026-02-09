@@ -40,6 +40,9 @@ Data_Package data;
 
 unsigned long lastRadioRxTime = 0; 
 
+uint8_t currentPwm = 0; 
+uint8_t targetPwm = 0; 
+
 bool isStopped = true; 
 bool goingForward = true; 
 bool lxInputIsIgnored = false; 
@@ -65,7 +68,7 @@ void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
 void debugInputs();
 
 void serialPrint(int number, int places);
-void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled); 
+void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool lowGearEnabled);
 
 void setup() {  
   Serial.begin(115200);
@@ -141,10 +144,10 @@ void loop() {
 
   if (dataIsFresh) {
     //LY
-    uint8_t pwm = map(data.ly, 0, 1024, 0, 255);
+    targetPwm = map(data.ly, 0, 1024, 0, 255);
     
     //LX
-    isStopped = pwm == 0;
+    isStopped = currentPwm == 0;
     if (isStopped) {
       if (data.lx < 250) {
         goingForward = true; 
@@ -156,6 +159,8 @@ void loop() {
         lxInputIsIgnored = false; 
       } 
     }
+
+
 
     //LZ
     hornActive = data.lz;  
@@ -185,7 +190,7 @@ void loop() {
     storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
 
     if (!SAFE_MODE) {
-      writeMotor(pwm, goingForward, lowGearEnabled); 
+      writeMotor(targetPwm, currentPwm, goingForward, lowGearEnabled); 
       writeExteriorLights(goingForward, exteriorLightsActive, rearLightsActive, lz1Active); 
       writeInteriorLights(interiorLightsActive); 
       writeHorn(hornActive);  
@@ -200,7 +205,7 @@ void loop() {
     //Serial.print(" ("); 
     //Serial.print(millisNow - lastRadioRxTime); 
     //Serial.println(" ms ago)");
-    writeMotor(0, 0, 0); 
+    writeMotor(0, currentPwm, 0, 0); 
     writeExteriorLights(0, 0, 0, 0); 
     writeHorn(0);
 
@@ -220,12 +225,25 @@ void writeBackwardPWM(uint8_t pwm) {
   ledcWrite(CHANNEL_B, pwm); 
 }
 
-void writeMotor(uint8_t pwm, bool direction, bool lowGearEnabled) {
-  pwm = lowGearEnabled ? pwm / 2 : pwm; 
+unsigned long lastTick = millis(); 
+bool timer(uint8_t ms) {
+  if (millis() >= lastTick + ms) {
+    lastTick = millis(); 
+    return true; 
+  }
+  return false; 
+}
+
+void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool lowGearEnabled) {
+  targetPwm = lowGearEnabled ? targetPwm/2 : targetPwm; 
+  if (timer(5)) {
+    if (targetPwm > currentPwm) currentPwm++; 
+    if (targetPwm < currentPwm) currentPwm--; 
+  }
   if (direction) {
-    writeForwardPWM(pwm); 
+    writeForwardPWM(currentPwm); 
   } else {
-    writeBackwardPWM(pwm); 
+    writeBackwardPWM(currentPwm); 
   }
 } 
 
