@@ -13,3 +13,14 @@ bool Timer::fires() {
     }
     return false; 
 }
+
+StagedTimer::StagedTimer(unsigned long ms, uint8_t stages): Timer(ms) {
+    this->currentStage = 1; 
+    this->stages = stages; 
+}
+
+uint8_t StagedTimer::getStage() {
+    if (fires()) currentStage ++; 
+    if (currentStage > stages) currentStage = 1; 
+    return currentStage;  
+}
