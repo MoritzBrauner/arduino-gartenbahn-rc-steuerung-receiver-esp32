@@ -66,6 +66,8 @@ bool exteriorLightsActive = false;
 
 //Timer registration
 Timer pwmTimer(5); 
+StagedTimer offlineBlinkerTimer(200, 3); 
+
 Timer offlineTimer(500); 
 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
@@ -186,10 +188,10 @@ void loop() {
     if(DEBUG_MODE) {
       debugInputs(); 
     }
+    
 
-    //falsch: 
-    //storeLightStates(Preferences_Data_Struct{(true, exteriorLightsActive, rearLightsActive, lz1Active)}); 
-    //richtig: 
+
+    //Store preferences
     storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
 
     if (!SAFE_MODE) {
@@ -209,6 +211,20 @@ void loop() {
     //Serial.print(millisNow - lastRadioRxTime); 
     //Serial.println(" ms ago)");
     
+    //Blink front lights in circular pattern
+    Serial.println(offlineBlinkerTimer.getStage());
+    switch (offlineBlinkerTimer.getStage()) {
+    case 1: 
+      writeFrontLights(1, 0, 0, 0, 0); 
+      break;
+    case 2: 
+      writeFrontLights(0, 0, 0, 0, 1); 
+    break;
+    case 3: 
+      writeFrontLights(0, 0, 1, 0, 0); 
+      break;
+    }
+
     if (offlineTimer.fires()) {
       interiorLightsActive = !interiorLightsActive; 
     }
