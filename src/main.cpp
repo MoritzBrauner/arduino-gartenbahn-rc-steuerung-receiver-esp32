@@ -203,12 +203,8 @@ void loop() {
 
   } else {
     //Blink front lights in circular pattern
-    
-
-    if (offlineTimer.fires()) {
-      interiorLightsActive = !interiorLightsActive; 
-    }
-    writeInteriorLights(interiorLightsActive); 
+    blinkLightsInFunnyPattern();    
+ 
     writeMotor(0, currentPwm, goingForward, 0); 
     writeExteriorLights(0, 0, 0, 0);
     writeHorn(0);
