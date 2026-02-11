@@ -66,14 +66,14 @@ bool exteriorLightsActive = false;
 
 //Timer registration
 Timer pwmTimer(5); 
-StagedTimer offlineBlinkerTimer(200, 3); 
+StagedTimer offlineBlinkerTimer(200, 10); 
 
 Timer offlineTimer(500); 
 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
 void debugInputs();
-
+void blinkLightsInFunnyPattern(); 
 void serialPrint(int number, int places);
 void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool lowGearEnabled);
 
@@ -202,28 +202,8 @@ void loop() {
     }
 
   } else {
-    //long millisNow = millis(); 
-    //Serial.print("Data too old. Last data received at: ");
-    //Serial.print(lastRadioRxTime);
-    //Serial.print(" Current timestamp: "); 
-    //Serial.print(millisNow);
-    //Serial.print(" ("); 
-    //Serial.print(millisNow - lastRadioRxTime); 
-    //Serial.println(" ms ago)");
-    
     //Blink front lights in circular pattern
-    Serial.println(offlineBlinkerTimer.getStage());
-    switch (offlineBlinkerTimer.getStage()) {
-    case 1: 
-      writeFrontLights(1, 0, 0, 0, 0); 
-      break;
-    case 2: 
-      writeFrontLights(0, 0, 0, 0, 1); 
-    break;
-    case 3: 
-      writeFrontLights(0, 0, 1, 0, 0); 
-      break;
-    }
+    
 
     if (offlineTimer.fires()) {
       interiorLightsActive = !interiorLightsActive; 
@@ -306,4 +286,120 @@ void debugInputs() {
   uint8_t pwm = map(data.ly, 0, 1024, 0, 255);
   serialPrint(pwm, 3);
   Serial.println();
+}
+
+void blinkLightsInFunnyPattern() {
+  Serial.println(offlineBlinkerTimer.getStage());
+  switch (offlineBlinkerTimer.getStage()) {
+  case 1: 
+    writeLights(
+      1, 0,
+      0, 0, 
+      0,
+      0, 0, 
+      0, 0, 
+      0, 
+      0
+    );  
+    break;
+  case 2: 
+    writeLights(
+      0, 0,
+      1, 0, 
+      0,
+      0, 0, 
+      0, 0, 
+      0, 
+      0
+    );  
+  break;
+  case 3: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      1,
+      0, 0, 
+      0, 0, 
+      0, 
+      0
+    ); 
+    break;
+  case 4: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      0,
+      0, 0, 
+      0, 0, 
+      0, 
+      1
+    ); 
+    break;
+  case 5: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      0,
+      0, 0, 
+      0, 0, 
+      1, 
+      0
+    ); 
+    break;
+    case 6: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      0,
+      0, 0, 
+      1, 0, 
+      0, 
+      0
+    ); 
+    break;
+    case 7: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      0,
+      1, 0, 
+      0, 0, 
+      0, 
+      0
+    ); 
+    break;
+    case 8: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      0,
+      0, 0, 
+      0, 0, 
+      1, 
+      0
+    ); 
+    break;
+    case 9: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      0,
+      0, 0, 
+      0, 0, 
+      0, 
+      1
+    ); 
+    break;
+    case 10: 
+    writeLights(
+      0, 0,
+      0, 0, 
+      1,
+      0, 0, 
+      0, 0, 
+      0, 
+      0
+    ); 
+    break;
+  }
 }
