@@ -123,3 +123,8 @@ void writeHorn(bool active) {
   writePin(PIN_HORN, active); 
 }
 
+void writeLights(bool fla, bool flb, bool fra, bool frb, bool ft, bool rla, bool rlb, bool rra, bool rrb, bool rt, bool interior) {
+  writeFrontLights(fla, flb, fra, frb, ft); 
+  writeRearLights(rla, rlb, rra, rrb, rt); 
+  writeInteriorLights(interior); 
+}

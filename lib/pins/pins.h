@@ -27,8 +27,7 @@
 
 void initPins();
 
-void writeFrontLights(bool fla, bool flb, bool fra, bool frb, bool ft); 
-void writeRearLights(bool rla, bool rlb, bool rra, bool rrb, bool rt);
+void writeLights(bool fla, bool flb, bool fra, bool frb, bool ft, bool rla, bool rlb, bool rra, bool rrb, bool rt, bool interior); 
 void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active); 
 void writeInteriorLights(bool active); 
 void writeHorn(bool active);
