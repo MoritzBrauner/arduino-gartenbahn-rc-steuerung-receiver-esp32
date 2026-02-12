@@ -1,5 +1,10 @@
 #include "motor.h"
 
+#define MIN_STICK_INPUT 0
+#define MAX_STICK_INPUT 1024
+#define MIN_PWM_VALUE 0 
+#define MAX_PWM_VALUE 255
+
 Motor::Motor(
     uint8_t forwardPwmPin, uint8_t backwardPwmPin, 
     uint32_t pwmFrequency, uint8_t pwmResolution,
@@ -23,7 +28,7 @@ Motor::Motor(
 }
 
 bool Motor::writeIsAllowed() {
-    if (isBlocked) Serial.println("Motor is blocked."); 
+    if (isBlocked) Serial.println("Motor is blocked. Make sure to make a '0' input first"); 
     if (!isSetUp) Serial.println("Motor is not set up yet."); 
     bool allowed = (!isBlocked && isSetUp); 
     return allowed; 
@@ -46,7 +51,7 @@ void Motor::init() {
     Serial.println("Motor initialized successfully"); 
 }
 
-bool Motor::setDirection(bool dir) {
+bool Motor::setDirectionIfStopped(bool dir) {
     if (isStopped) {
         this->direction = dir;
         return true; 
@@ -54,10 +59,15 @@ bool Motor::setDirection(bool dir) {
     return false; 
 }
 
-void Motor::write(uint16_t stickData, bool lowGearIsEnabled) {    
+void Motor::write(uint16_t stickData, bool lowGearIsEnabled) {   
+    if (isBlocked && stickData == 0) unblock(); //<- to ensure that the stick has read 0 before writing motor  
+    if (!writeIsAllowed()) stickData = 0; 
+    Serial.print("Writing ");
+    Serial.println(stickData);  
     isStopped = currentPwm == 0;
-    uint16_t targetPwm = map(stickData, 0, 1024, 0, 255);
+    uint16_t targetPwm = map(stickData, MIN_STICK_INPUT, MAX_STICK_INPUT, MIN_PWM_VALUE, MAX_PWM_VALUE);
     targetPwm = lowGearIsEnabled ? targetPwm/2 : targetPwm;  
+    //ramp
     if (timer.fires()) {
         if (targetPwm > currentPwm) currentPwm++; 
         if (targetPwm < currentPwm) currentPwm--; 
@@ -80,6 +90,18 @@ void Motor::writeBackwardPwm(uint8_t pwm) {
     ledcWrite(channelA, 0); 
     ledcWrite(channelB, pwm); 
 }
+
+bool Motor::getCurrentDirection() {
+    return direction; 
+}
+
+void Motor::block() {
+    isBlocked = true; 
+} 
+
+void Motor::unblock() {
+    isBlocked = false; 
+} 
 
 
 
