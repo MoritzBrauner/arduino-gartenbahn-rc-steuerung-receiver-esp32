@@ -5,9 +5,10 @@
 #include <ArduinoOTA.h>
 #include <WiFiUdp.h>
 #include <wifimqtt.h>
-#include <storage.h> //preferences handling
-#include <pins.h> //pin declarations
-#include <Timer.h>
+#include <storage.h> //persistent preferences handling
+#include <pins.h> //pin declarations and writing
+#include <Timer.h> 
+#include <motor.h> 
 
 #define SAFE_MODE false
 #define DEBUG_MODE false
@@ -18,10 +19,12 @@
 #define DEFAULT_DIGITAL_VALUE 0
 #define DEFAULT_STICK_THRESHOLD 256
 
+//Motor constants 
 #define PWM_FREQUENCY 20000
 #define PWM_RESOLUTION 8
 #define CHANNEL_A 0
 #define CHANNEL_B 1
+#define MOTOR_TIMER_INTERVAL 5
 
 //Radio setup 
 RF24 radio(PIN_CE, PIN_CSN); // CE, CSN
@@ -44,10 +47,6 @@ unsigned long lastRadioRxTime = 0;
 uint8_t currentPwm = 0; 
 uint8_t targetPwm = 0; 
 
-bool isStopped = true; 
-bool goingForward = true; 
-bool lxInputIsIgnored = false; 
-
 bool lowGearEnabled = false; 
 
 bool hornActive = false;
@@ -65,17 +64,25 @@ bool ryuIsIgnored = false;
 bool exteriorLightsActive = false; 
 
 //Timer registration
-Timer pwmTimer(5); 
 StagedTimer offlineBlinkerTimer(200, 10); 
-
 Timer offlineTimer(500); 
+
+//Motor registration
+Motor motor(
+  PIN_PWM_FORWARD, 
+  PIN_PWM_BACKWARD, 
+  PWM_FREQUENCY,
+  PWM_RESOLUTION,
+  CHANNEL_A, 
+  CHANNEL_B, 
+  MOTOR_TIMER_INTERVAL
+);
 
 void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
 void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
 void debugInputs();
 void blinkLightsInFunnyPattern(); 
 void serialPrint(int number, int places);
-void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool lowGearEnabled);
 
 void setup() {  
   Serial.begin(115200);
@@ -95,21 +102,11 @@ void setup() {
   radio.setPALevel(RF24_PA_MAX);
   radio.startListening();
 
-  //Setup LEDC API
-  uint32_t ch1Freq = ledcSetup(CHANNEL_A, PWM_FREQUENCY, PWM_RESOLUTION);
-  uint32_t ch2Freq = ledcSetup(CHANNEL_B, PWM_FREQUENCY, PWM_RESOLUTION); 
-  ledcAttachPin(PIN_PWM_FORWARD, CHANNEL_A);
-  ledcAttachPin(PIN_PWM_BACKWARD, CHANNEL_B);  
-  ledcWrite(CHANNEL_A, 0);
-  ledcWrite(CHANNEL_B, 0);
-  Serial.println("Set up LEDC channels with frequencies:"); 
-  Serial.print("   Channel 1: ");
-  Serial.println(ch1Freq); 
-  Serial.print("   Channel 2: ");
-  Serial.println(ch2Freq); 
-
   Serial.print("SAFE MODE ");
   Serial.println(SAFE_MODE ? "enabled, all Pin-Interactions disabled" : "disabled, Pin-Interactions enabled"); 
+  
+  //Init motor
+  motor.init();
 
   //Set pin Modes and write LOW
   initPins();
@@ -120,9 +117,10 @@ void setup() {
   interiorLightsActive = savedStates.interiorLightsActive; 
   rearLightsActive = savedStates.rearLightsActive; 
   lz1Active = savedStates.lz1Active; 
+
   if (!SAFE_MODE) {
     writeInteriorLights(interiorLightsActive); 
-    writeExteriorLights(goingForward, exteriorLightsActive, rearLightsActive, lz1Active);
+    writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active);
   }
 
   //Set up OTA 
@@ -150,23 +148,14 @@ void loop() {
   bool dataIsFresh = (millis() - lastRadioRxTime) <= RADIO_TIMEOUT_MS;
 
   if (dataIsFresh) {
-    //LY
-    targetPwm = map(data.ly, 0, 1024, 0, 255);
     
     //LX
-    isStopped = currentPwm == 0;
-    if (isStopped) {
-      if (data.lx < 250) {
-        goingForward = true; 
-        lxInputIsIgnored = true; 
-      } else if (data.lx > 1024 - 250) {
-        goingForward = false; 
-        lxInputIsIgnored = true;
-      } else {
-        lxInputIsIgnored = false; 
-      } 
+    if (data.lx < 250) {
+      motor.setDirectionIfStopped(true);   
+    } else if (data.lx > 1024 - 250) {
+      motor.setDirectionIfStopped(false); 
     }
-
+    
     //LZ
     hornActive = data.lz;  
 
@@ -188,55 +177,26 @@ void loop() {
     if(DEBUG_MODE) {
       debugInputs(); 
     }
-    
-
 
     //Store preferences
     storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
 
     if (!SAFE_MODE) {
-      writeMotor(targetPwm, currentPwm, goingForward, lowGearEnabled); 
-      writeExteriorLights(goingForward, exteriorLightsActive, rearLightsActive, lz1Active); 
+      motor.write(data.ly, lowGearEnabled); 
+      writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active); 
       writeInteriorLights(interiorLightsActive); 
       writeHorn(hornActive);  
     }
 
   } else {
+    motor.block(); 
+    motor.write(data.ly, lowGearEnabled); //<- write nevertheless, blocking is handled internally 
     //Blink front lights in circular pattern
-    blinkLightsInFunnyPattern();    
- 
-    writeMotor(0, currentPwm, goingForward, 0); 
+    blinkLightsInFunnyPattern();     
     writeExteriorLights(0, 0, 0, 0);
     writeHorn(0);
-
-    //TODO: signal that connection was lost (maybe flash LED / if connection was lost for more than X seconds together with horn?)
   }
 }
-
-void writeForwardPWM(uint8_t pwm) {    
-  //Never write 2 opposing PWM pins HIGH at the same time
-  ledcWrite(CHANNEL_B, 0); 
-  ledcWrite(CHANNEL_A, pwm); 
-}
-
-void writeBackwardPWM(uint8_t pwm) {
-  //Never write 2 opposing PWM pins HIGH at the same time
-  ledcWrite(CHANNEL_A, 0); 
-  ledcWrite(CHANNEL_B, pwm); 
-}
-
-void writeMotor(uint8_t targetPwm, uint8_t &currentPwm, bool direction, bool lowGearEnabled) {
-  targetPwm = lowGearEnabled ? targetPwm/2 : targetPwm; 
-  if (pwmTimer.fires()) {
-    if (targetPwm > currentPwm) currentPwm++; 
-    if (targetPwm < currentPwm) currentPwm--; 
-  }
-  if (direction) {
-    writeForwardPWM(currentPwm); 
-  } else {
-    writeBackwardPWM(currentPwm); 
-  }
-} 
 
 void serialPrint(int number, int places) {
   char buffer[16];
@@ -273,7 +233,7 @@ void debugInputs() {
   Serial.print("lx: "); 
   serialPrint(data.lx, 4);
   Serial.print("   |   going forward: "); 
-  Serial.print(goingForward);
+  Serial.print(motor.getCurrentDirection());
   Serial.print("   |   low gear: "); 
   Serial.print(lowGearEnabled);
   Serial.print("   |   ly: "); 
