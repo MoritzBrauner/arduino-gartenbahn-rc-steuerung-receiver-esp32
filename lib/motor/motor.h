@@ -24,8 +24,8 @@ class Motor {
 
         bool isStopped; 
 
-        bool isBlocked = true; 
-        bool isSetUp = false; 
+        bool isBlocked = true; // has motor been set to 0? 
+        bool isSetUp = false; //was the init() fun called? 
 
         bool writeIsAllowed(); 
         void writeForwardPwm(uint8_t pwm); 
@@ -43,6 +43,7 @@ class Motor {
         bool getCurrentDirection(); 
         void block(); 
         void unblock(); 
+        bool getBlocked(); 
 };  
 
 

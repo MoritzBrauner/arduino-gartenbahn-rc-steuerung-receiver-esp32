@@ -103,7 +103,6 @@ void Motor::unblock() {
     isBlocked = false; 
 } 
 
-
-
-
-
+bool Motor::getBlocked() {
+    return isBlocked; 
+}
