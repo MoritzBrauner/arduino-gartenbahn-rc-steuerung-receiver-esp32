@@ -4,3 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 /.vscode/
+/.idea/.gitignore
+/.idea/editor.xml
+/.idea/misc.xml
+/.idea/vcs.xml
