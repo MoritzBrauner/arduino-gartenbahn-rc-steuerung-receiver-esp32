@@ -59,9 +59,9 @@ bool Motor::setDirectionIfStopped(bool dir) {
     return false; 
 }
 
-void Motor::write(uint16_t stickData, bool lowGearIsEnabled) {   
+bool Motor::write(uint16_t stickData, bool lowGearIsEnabled) {
     if (isBlocked && stickData == 0) unblock(); //<- to ensure that the stick has read 0 before writing motor  
-    if (!writeIsAllowed()) stickData = 0; 
+    if (!writeIsAllowed()) stickData = 0;
     Serial.print("Writing ");
     Serial.println(stickData);  
     isStopped = currentPwm == 0;
@@ -77,6 +77,7 @@ void Motor::write(uint16_t stickData, bool lowGearIsEnabled) {
     } else {
         writeBackwardPwm(currentPwm); 
     }
+    return writeIsAllowed();
 }
 
 void Motor::writeForwardPwm(uint8_t pwm) {

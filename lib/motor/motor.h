@@ -37,8 +37,9 @@ class Motor {
             uint8_t channelA, uint8_t channelB,
             unsigned long timerInterval
         ); 
-        void init(); 
-        void write(uint16_t stickData, bool lowGearIsEnabled); 
+        void init();
+
+        bool write(uint16_t stickData, bool lowGearIsEnabled);
         bool setDirectionIfStopped(bool forward);
         bool getCurrentDirection(); 
         void block(); 

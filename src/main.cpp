@@ -1,9 +1,7 @@
 //ESP32 Receiver
 #include <Arduino.h>
-#include <nRF24L01.h> 
 #include <RF24.h> 
 #include <ArduinoOTA.h>
-#include <WiFiUdp.h>
 #include <wifimqtt.h>
 #include <storage.h> //persistent preferences handling
 #include <pins.h> //pin declarations and writing
@@ -28,7 +26,7 @@
 
 //Radio setup 
 RF24 radio(PIN_CE, PIN_CSN); // CE, CSN
-const byte address[6] = "00100";
+constexpr byte address[6] = "00100";
 
 //Data Package 
 struct __attribute__((packed)) Data_Package {
@@ -64,7 +62,8 @@ bool ryuIsIgnored = false;
 bool exteriorLightsActive = false; 
 
 //Timer registration
-StagedTimer offlineBlinkerTimer(200, 10); 
+StagedTimer offlineBlinkerTimer(200, 10);
+StagedTimer motorIsBlockedTimer(200, 2);
 Timer offlineTimer(500); 
 
 //Motor registration
@@ -78,10 +77,11 @@ Motor motor(
   MOTOR_TIMER_INTERVAL
 );
 
-void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut); 
-void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut);
+void handleUpperStickInput_512_1024(uint16_t stickData, bool &lockVar, bool &outPut);
+void handleLowerStickInput_0_512(uint16_t stickData, bool &lockVar, bool &outPut);
 void debugInputs();
-void blinkLightsInFunnyPattern(); 
+void blinkLightsInOfflinePattern();
+void blinkLightsInMotorBlockedPattern();
 void serialPrint(int number, int places);
 
 void setup() {  
@@ -91,7 +91,7 @@ void setup() {
   Serial.println("Setup - Start");
 
   //Initialize Radio Communication
-  bool radioInitStatus = radio.begin();
+  const bool radioInitStatus = radio.begin();
   Serial.print("Radio Initialization: ");
   Serial.println(radioInitStatus ? "Success" : "Failed");
 
@@ -112,7 +112,7 @@ void setup() {
   initPins();
   
   //Set up preferences, init light states 
-  Preferences_Data_Struct savedStates = initPreferences();
+  const Preferences_Data_Struct savedStates = initPreferences();
   exteriorLightsActive = savedStates.exteriorLightsActive; 
   interiorLightsActive = savedStates.interiorLightsActive; 
   rearLightsActive = savedStates.rearLightsActive; 
@@ -132,13 +132,14 @@ void setup() {
 }
 
 void loop() {
-  //LX: Richtung V> R< 
-  //LY: Fahrregler 
+  //LX: Direction V> R<
+  //LY: Throttle
   //LZ: Horn 
 
-  //RX: Kabinenbeleuchtung  < / FZ1 (1 weiße Leuchte auf Pufferhöhe) > 
-  //RY: Umschalten Hecklichter / Licht an/aus 
-  //RZ: Hauptschalter?  / Rangierschalter (langsamere V-max)?
+  //RX: Cabin Lights < / FZ1 (1 white light fr and rl) >
+  //RY: toggle rear lights / toggle lights
+  //RZ: low gear (slower V-max)?
+
   ArduinoOTA.handle(); 
 
   if (radio.available()) {
@@ -151,7 +152,7 @@ void loop() {
     
     //LX
     if (data.lx < 250) {
-      motor.setDirectionIfStopped(true);   
+      motor.setDirectionIfStopped(true);
     } else if (data.lx > 1024 - 250) {
       motor.setDirectionIfStopped(false); 
     }
@@ -177,12 +178,14 @@ void loop() {
     if(DEBUG_MODE) {
       debugInputs(); 
     }
-
     //Store preferences
     storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
 
     if (!SAFE_MODE) {
-      motor.write(data.ly, lowGearEnabled); 
+      const bool writeSucceeded = motor.write(data.ly, lowGearEnabled);
+      if (!writeSucceeded) {
+        blinkLightsInMotorBlockedPattern();
+      }
       writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active); 
       writeInteriorLights(interiorLightsActive); 
       writeHorn(hornActive);  
@@ -190,25 +193,23 @@ void loop() {
 
   } else {
     motor.block(); 
-    motor.write(data.ly, lowGearEnabled); //<- write nevertheless, blocking is handled internally 
-    //Blink front lights in circular pattern
-    blinkLightsInFunnyPattern();     
-    writeExteriorLights(0, 0, 0, 0);
-    writeHorn(0);
+    motor.write(data.ly, lowGearEnabled); //<- write nevertheless, blocking is handled internally
+    blinkLightsInOfflinePattern(); //Blink front lights in a circular pattern
+    writeHorn(false);
   }
-}
+} 
 
-void serialPrint(int number, int places) {
+void serialPrint(const int number, const int places) {
   char buffer[16];
-  //Format-String dynamisch bauen, z.B. "%04d", "%06d", ...
+  //build string dynamically, z.B. "%04d", "%06d", ...
   char format[8];
   snprintf(format, sizeof(format), "%%0%dd", places);
   snprintf(buffer, sizeof(buffer), format, number);
   Serial.print(buffer);
 }
 
-void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut) {
-  if (data < DEFAULT_STICK_THRESHOLD) {
+void handleLowerStickInput_0_512(const uint16_t stickData, bool &lockVar, bool &outPut) {
+  if (stickData < DEFAULT_STICK_THRESHOLD) {
     if (!lockVar) {
       outPut = !outPut;
       lockVar = true; 
@@ -218,8 +219,8 @@ void handleLowerStickInput_0_512(uint16_t data, bool &lockVar, bool &outPut) {
   }
 }
 
-void handleUpperStickInput_512_1024(uint16_t data, bool &lockVar, bool &outPut) {
-  if (data > 1024 - DEFAULT_STICK_THRESHOLD) {
+void handleUpperStickInput_512_1024(const uint16_t stickData, bool &lockVar, bool &outPut) {
+  if (stickData > 1024 - DEFAULT_STICK_THRESHOLD) {
     if (!lockVar) {
       outPut = !outPut;
       lockVar = true; 
@@ -244,7 +245,7 @@ void debugInputs() {
   Serial.println();
 }
 
-void blinkLightsInFunnyPattern() {
+void blinkLightsInOfflinePattern() {
   Serial.println(offlineBlinkerTimer.getStage());
   switch (offlineBlinkerTimer.getStage()) {
   case 1: 
@@ -333,7 +334,7 @@ void blinkLightsInFunnyPattern() {
       0, 0, 
       1, 
       0
-    ); 
+    );
     break;
     case 9: 
     writeLights(
@@ -357,5 +358,32 @@ void blinkLightsInFunnyPattern() {
       0
     ); 
     break;
+  default: ;
+  }
+}
+
+void blinkLightsInMotorBlockedPattern() {
+  switch (motorIsBlockedTimer.getStage()) {
+    case 1:
+      writeLights(
+        0, 1,
+        0, 1,
+        0,
+        0, 1,
+        0, 1,
+        0,
+        0);
+      break;
+    case 2:
+      writeLights(
+        0, 0,
+        0, 0,
+        0,
+        0, 0,
+        0, 0,
+        0,
+        0);
+      break;
+    default: ;
   }
 }
