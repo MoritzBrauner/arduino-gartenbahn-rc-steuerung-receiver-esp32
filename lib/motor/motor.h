@@ -5,7 +5,6 @@
 #include <Timer.h>
 
 
-
 class Motor {
     private:
         uint8_t forwardPwmPin; 
@@ -24,7 +23,7 @@ class Motor {
 
         bool isStopped; 
 
-        bool isBlocked = true; // has motor been set to 0? 
+        bool isBlocked = true; // has the motor been set to 0?
         bool isSetUp = false; //was the init() fun called? 
 
         bool writeIsAllowed(); 

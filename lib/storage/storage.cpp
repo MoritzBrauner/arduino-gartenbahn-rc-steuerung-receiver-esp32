@@ -1,4 +1,5 @@
 #include "storage.h"
+#include <Preferences.h>
 #include <Arduino.h>
 
 #define RW_MODE false
