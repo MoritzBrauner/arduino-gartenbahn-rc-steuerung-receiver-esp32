@@ -17,7 +17,7 @@ class Lights {
         void setDirection(bool direction);
         void setCabLightStatus(bool status);
         void write();
-        void writeExteriorLights(bool fla, bool flb, bool fra, bool frb, bool ft, bool rla, bool rlb, bool rra, bool rrb, bool rt);
+        void writeExteriorLights(bool fla, bool flb, bool fra, bool frb, bool ft, bool rla, bool rlb, bool rra, bool rrb, bool rt, bool interior);
         LightMode getMode();
     private:
         bool direction;

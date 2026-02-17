@@ -6,7 +6,9 @@
 #include <storage.h> //persistent preferences handling
 #include <pins.h> //pin declarations and writing
 #include <Timer.h> 
-#include <motor.h> 
+#include <motor.h>
+#include "lights.h"
+#include "stick.h"
 
 #define SAFE_MODE false
 #define DEBUG_MODE false
@@ -50,7 +52,7 @@ bool lowGearEnabled = false;
 bool hornActive = false;
 
 bool rxlIsIgnored = false;
-bool interiorLightsActive = false;  
+bool interiorLightsActive = false;
 
 bool rxrIsIgnored = false; 
 bool lz1Active = false; 
@@ -63,7 +65,7 @@ bool exteriorLightsActive = false;
 
 //Timer registration
 StagedTimer offlineBlinkerTimer(200, 10);
-StagedTimer motorIsBlockedTimer(200, 2);
+StagedTimer motorIsBlockedTimer(500, 2);
 Timer offlineTimer(500); 
 
 //Motor registration
@@ -77,12 +79,17 @@ Motor motor(
   MOTOR_TIMER_INTERVAL
 );
 
-void handleUpperStickInput_512_1024(uint16_t stickData, bool &lockVar, bool &outPut);
-void handleLowerStickInput_0_512(uint16_t stickData, bool &lockVar, bool &outPut);
-void debugInputs();
+//Lights
+Lights lights(true, LightMode::Off, false);
+
+
+
+/*void handleUpperStickInput_512_1024(uint16_t stickData, bool &lockVar, bool &outPut);
+void handleLowerStickInput_0_512(uint16_t stickData, bool &lockVar, bool &outPut);*/
+//void debugInputs();
 void blinkLightsInOfflinePattern();
 void blinkLightsInMotorBlockedPattern();
-void serialPrint(int number, int places);
+//void serialPrint(int number, int places);
 
 void setup() {  
   Serial.begin(115200);
@@ -114,12 +121,12 @@ void setup() {
   //Set up preferences, init light states 
   const Preferences_Data_Struct savedStates = initPreferences();
   exteriorLightsActive = savedStates.exteriorLightsActive; 
-  interiorLightsActive = savedStates.interiorLightsActive; 
+  //interiorLightsActive = savedStates.interiorLightsActive;
   rearLightsActive = savedStates.rearLightsActive; 
   lz1Active = savedStates.lz1Active; 
 
   if (!SAFE_MODE) {
-    writeInteriorLights(interiorLightsActive); 
+    //writeInteriorLights(interiorLightsActive);
     writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active);
   }
 
@@ -131,7 +138,29 @@ void setup() {
   Serial.println("Setup - End");
 }
 
+//void determineAndApplyLightStates(uint16_t dataRX, uint16_t dataRY);
+
+
+
+// Loop frequency measurement
+unsigned long lastLoopMeasureTime = 0;
+unsigned long loopCounter = 0;
+void printLoopFrequency() {
+  loopCounter++;
+  unsigned long currentTime = millis();
+  if (currentTime - lastLoopMeasureTime >= 1000) {
+    Serial.print("Loops/s: ");
+    Serial.println(loopCounter);
+
+    loopCounter = 0;
+    lastLoopMeasureTime = currentTime;
+  }
+}
+
+RightStickPathDetector rightStick(DEFAULT_STICK_THRESHOLD);
+
 void loop() {
+  printLoopFrequency();
   //LX: Direction V> R<
   //LY: Throttle
   //LZ: Horn 
@@ -140,74 +169,163 @@ void loop() {
   //RY: toggle rear lights / toggle lights
   //RZ: low gear (slower V-max)?
 
-  ArduinoOTA.handle(); 
-
   if (radio.available()) {
     radio.read(&data, sizeof(Data_Package));
     lastRadioRxTime = millis(); 
   }
   bool dataIsFresh = (millis() - lastRadioRxTime) <= RADIO_TIMEOUT_MS;
 
-  if (dataIsFresh) {
-    
-    //LX
-    if (data.lx < 250) {
-      motor.setDirectionIfStopped(true);
-    } else if (data.lx > 1024 - 250) {
-      motor.setDirectionIfStopped(false); 
-    }
-    
-    //LZ
-    hornActive = data.lz;  
-
-    //RX - Left Side (>512)
-    handleUpperStickInput_512_1024(data.rx, rxlIsIgnored, interiorLightsActive); 
-
-    //RX - Right Side (<512) 
-    handleLowerStickInput_0_512(data.rx, rxrIsIgnored, lz1Active); 
-
-    //RY - Lower (<512)
-    handleLowerStickInput_0_512(data.ry, rylIsIgnored, rearLightsActive); 
-    
-    //RY - Upper (>512)
-    handleUpperStickInput_512_1024(data.ry, ryuIsIgnored, exteriorLightsActive); 
-
-    //RZ
-    lowGearEnabled = !data.rz; 
-
-    if(DEBUG_MODE) {
-      debugInputs(); 
-    }
-    //Store preferences
-    storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active})); 
-
-    if (!SAFE_MODE) {
-      const bool writeSucceeded = motor.write(data.ly, lowGearEnabled);
-      if (!writeSucceeded) {
-        blinkLightsInMotorBlockedPattern();
-      }
-      writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active); 
-      writeInteriorLights(interiorLightsActive); 
-      writeHorn(hornActive);  
-    }
-
-  } else {
-    motor.block(); 
+  if (!dataIsFresh) {
+    ArduinoOTA.handle();
+    motor.block();
     motor.write(data.ly, lowGearEnabled); //<- write nevertheless, blocking is handled internally
     blinkLightsInOfflinePattern(); //Blink front lights in a circular pattern
     writeHorn(false);
+    return;
   }
-} 
 
-void serialPrint(const int number, const int places) {
-  char buffer[16];
-  //build string dynamically, z.B. "%04d", "%06d", ...
-  char format[8];
-  snprintf(format, sizeof(format), "%%0%dd", places);
-  snprintf(buffer, sizeof(buffer), format, number);
-  Serial.print(buffer);
+  if (motor.getBlocked() && data.ly == 0) {
+    motor.unblock();
+  }
+
+  //Rest vom Code
+  //LX
+  if (data.lx < 250) {
+    motor.setDirectionIfStopped(true);
+  } else if (data.lx > 1024 - 250) {
+    motor.setDirectionIfStopped(false);
+  }
+
+  //LZ
+  hornActive = data.lz;
+
+  //RX - Left Side (>512)
+
+  //lights.setCabLightStatus(interiorLightsActive);
+
+  //RX - Right Side (<512)
+  /*handleLowerStickInput_0_512(data.rx, rxrIsIgnored, lz1Active);
+
+  //RY - Lower (<512)
+  handleLowerStickInput_0_512(data.ry, rylIsIgnored, rearLightsActive);
+
+  //RY - Upper (>512)
+  handleUpperStickInput_512_1024(data.ry, ryuIsIgnored, exteriorLightsActive); */
+
+  //determineAndApplyLightStates(data.rx, data.ry);
+  //lights.setDirection(motor.getCurrentDirection());
+  auto result = rightStick.update(data.rx, data.ry);
+  if (result.pathDetected) {
+    switch (result.path) {
+      case RightStickPathDetector::Path::Up_Left:
+        lights.setMode(LightMode::FrontOnly);
+        break;
+
+      case RightStickPathDetector::Path::Up_Right:
+        lights.setMode(LightMode::FrontAndRear);
+        break;
+
+        case RightStickPathDetector::Path::Right_Up:
+        //lights.setMode(LightMode::Lz1);
+        lights.setDirection(true);
+        break;
+
+      case RightStickPathDetector::Path::Right_Down:
+        //lights.setMode(LightMode::Off);
+        lights.setDirection(false);
+        break;
+
+      case RightStickPathDetector::Path::Down_Left:
+        lights.setMode(LightMode::Off);
+        break;
+
+      case RightStickPathDetector::Path::Down_Right:
+        lights.setMode(LightMode::Lz1);
+        break;
+
+      case RightStickPathDetector::Path::Left_Up:
+        //lights.setMode(LightMode::Lz1);
+        lights.setCabLightStatus(true);
+        break;
+
+      case RightStickPathDetector::Path::Left_Down:
+        //lights.setMode(LightMode::Lz1);
+        lights.setCabLightStatus(false);
+        break;
+
+      default:
+        break;
+    }
+  }
+  /*Serial.print(data.rx);
+  Serial.print("   |  ");
+  Serial.print(data.ry);
+  Serial.print("   |  ");
+  Serial.print(result.pathDetected);
+  Serial.print("   |  ");
+  Serial.print(static_cast<int>(result.path));
+  Serial.print("   |  ");
+  Serial.println(static_cast<int>(lights.getMode()));*/
+
+
+
+
+  //RZ
+  lowGearEnabled = !data.rz;
+
+  /*if(DEBUG_MODE) {
+    debugInputs();
+  }*/
+  //Store preferences
+  //storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active}));
+
+  if (!SAFE_MODE) {
+    const bool writeSucceeded = motor.write(data.ly, lowGearEnabled);
+
+    if (writeSucceeded) {
+      lights.write();
+    } else {
+      blinkLightsInMotorBlockedPattern();
+    }
+    //writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active);
+    //writeInteriorLights(interiorLightsActive);
+    writeHorn(hornActive);
+  }
 }
 
+/*bool isIgnored = false;
+void determineAndApplyLightStates(uint16_t dataRX, uint16_t dataRY) {
+  if (dataRX > 1024 - DEFAULT_STICK_THRESHOLD) {
+    if (dataRY > 1024 - DEFAULT_STICK_THRESHOLD) {
+      lights.setCabLightStatus(true);
+    }
+    if (dataRY < DEFAULT_STICK_THRESHOLD) {
+      lights.setCabLightStatus(false);
+    }
+  }
+
+  if (dataRY > 1024 - DEFAULT_STICK_THRESHOLD && dataRX < 1024 - DEFAULT_STICK_THRESHOLD) {
+    if (!isIgnored) {
+      lights.setMode(LightMode::FrontOnly);
+      if (dataRX < DEFAULT_STICK_THRESHOLD) {
+        lights.setMode(LightMode::FrontAndRear);
+        isIgnored = true;
+      }
+    }
+  } else {
+    isIgnored = false;
+  }
+
+  if (dataRX < DEFAULT_STICK_THRESHOLD && dataRY < 1024 - DEFAULT_STICK_THRESHOLD) {
+    lights.setMode(LightMode::Lz1);
+  }
+
+  if (dataRY < DEFAULT_STICK_THRESHOLD) {
+    lights.setMode(LightMode::Off);
+  }
+}*/
+
+/*
 void handleLowerStickInput_0_512(const uint16_t stickData, bool &lockVar, bool &outPut) {
   if (stickData < DEFAULT_STICK_THRESHOLD) {
     if (!lockVar) {
@@ -228,9 +346,9 @@ void handleUpperStickInput_512_1024(const uint16_t stickData, bool &lockVar, boo
   } else {
     lockVar = false; 
   }
-}
+}*/
 
-void debugInputs() {
+/*void debugInputs() {
   Serial.print("lx: "); 
   serialPrint(data.lx, 4);
   Serial.print("   |   going forward: "); 
@@ -243,36 +361,35 @@ void debugInputs() {
   uint8_t pwm = map(data.ly, 0, 1024, 0, 255);
   serialPrint(pwm, 3);
   Serial.println();
-}
+}*/
 
 void blinkLightsInOfflinePattern() {
-  Serial.println(offlineBlinkerTimer.getStage());
   switch (offlineBlinkerTimer.getStage()) {
-  case 1: 
-    writeLights(
+  case 1:
+    lights.writeExteriorLights  (
       1, 0,
       0, 0, 
       0,
       0, 0, 
       0, 0, 
-      0, 
+      0,
       0
     );  
     break;
   case 2: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       1, 0, 
       0,
       0, 0, 
       0, 0, 
-      0, 
+      0,
       0
     );  
   break;
-  case 3: 
-    writeLights(
-      0, 0,
+  case 3:
+    lights.writeExteriorLights(
+   0, 0,
       0, 0, 
       1,
       0, 0, 
@@ -282,7 +399,7 @@ void blinkLightsInOfflinePattern() {
     ); 
     break;
   case 4: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       0,
@@ -293,7 +410,7 @@ void blinkLightsInOfflinePattern() {
     ); 
     break;
   case 5: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       0,
@@ -303,8 +420,8 @@ void blinkLightsInOfflinePattern() {
       0
     ); 
     break;
-    case 6: 
-    writeLights(
+  case 6:
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       0,
@@ -315,18 +432,18 @@ void blinkLightsInOfflinePattern() {
     ); 
     break;
     case 7: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       0,
       1, 0, 
       0, 0, 
-      0, 
+      0,
       0
     ); 
     break;
     case 8: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       0,
@@ -337,7 +454,7 @@ void blinkLightsInOfflinePattern() {
     );
     break;
     case 9: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       0,
@@ -348,7 +465,7 @@ void blinkLightsInOfflinePattern() {
     ); 
     break;
     case 10: 
-    writeLights(
+    lights.writeExteriorLights(
       0, 0,
       0, 0, 
       1,
@@ -365,7 +482,7 @@ void blinkLightsInOfflinePattern() {
 void blinkLightsInMotorBlockedPattern() {
   switch (motorIsBlockedTimer.getStage()) {
     case 1:
-      writeLights(
+      lights.writeExteriorLights(
         0, 1,
         0, 1,
         0,
@@ -375,7 +492,7 @@ void blinkLightsInMotorBlockedPattern() {
         0);
       break;
     case 2:
-      writeLights(
+      lights.writeExteriorLights(
         0, 0,
         0, 0,
         0,

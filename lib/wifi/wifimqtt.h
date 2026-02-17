@@ -31,9 +31,10 @@ void connectAP()
     Serial.print(".");
     cnt++;
 
-    if (cnt > 30)
-    {
-      ESP.restart();
+    if (cnt > 30) {
+      Serial.println("Connection failed!");
+      return;
+      //ESP.restart();
     }
   }
   Serial.println(); 

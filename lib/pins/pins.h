@@ -27,8 +27,8 @@
 
 void initPins();
 
-//void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active);
-//void writeInteriorLights(bool active);
+void writeExteriorLights(bool direction, bool lightsActive, bool rearLightsActive, bool lz1Active);
+void writeInteriorLights(bool active);
 void writeHorn(bool active);
 //void writeFrontLightsWhite();
 //void writeFrontLightsRed();

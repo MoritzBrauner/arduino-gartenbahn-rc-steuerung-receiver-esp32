@@ -95,7 +95,7 @@ void Lights::writeRearLightsOff() {
 
 void Lights::writeLz1() {
     writeFrontLights(false, false, true, false, false);
-    writeRearLights(true, false, true, false, false);
+    writeRearLights(true, false, false, false, false);
 }
 
 void Lights::writeFrontLights(bool fla, bool flb, bool fra, bool frb, bool ft) {
@@ -114,9 +114,10 @@ void Lights::writeRearLights(bool rla, bool rlb, bool rra, bool rrb, bool rt) {
     writePin(PIN_LIGHT_RT,   rt);
 }
 
-void Lights::writeExteriorLights(bool fla, bool flb, bool fra, bool frb, bool ft, bool rla, bool rlb, bool rra, bool rrb, bool rt) {
+void Lights::writeExteriorLights(bool fla, bool flb, bool fra, bool frb, bool ft, bool rla, bool rlb, bool rra, bool rrb, bool rt, bool interior) {
     writeFrontLights(fla, flb, fra, frb, ft);
     writeRearLights(rla, rlb, rra, rrb, rt);
+    writeInteriorLights(interior);
 }
 
 LightMode Lights::getMode() {
