@@ -40,12 +40,9 @@ struct __attribute__((packed)) Data_Package {
   uint16_t ry;
   uint8_t  rz;
 };
-Data_Package data; 
+Data_Package data;
 
-unsigned long lastRadioRxTime = 0; 
-
-uint8_t currentPwm = 0; 
-uint8_t targetPwm = 0; 
+unsigned long lastRadioRxTime = 0;
 
 bool lowGearEnabled = false; 
 
@@ -54,7 +51,6 @@ bool hornActive = false;
 //Timer registration
 StagedTimer offlineBlinkerTimer(200, 10);
 StagedTimer motorIsBlockedTimer(500, 2);
-Timer offlineTimer(500); 
 
 //Motor registration
 Motor motor(
@@ -88,10 +84,8 @@ void setup() {
   const bool radioInitStatus = radio.begin();
   Serial.print("Radio Initialization: ");
   Serial.println(radioInitStatus ? "Success" : "Failed");
-
   Serial.print("Struct size: ");
   Serial.println(sizeof(Data_Package));
-
   radio.openReadingPipe(0, address);
   radio.setPALevel(RF24_PA_MAX);
   radio.startListening();
@@ -114,7 +108,7 @@ void setup() {
     lights.write();
   }
 
-  //Set up OTA 
+  //Set up OTA-Updates
   connectAP(); 
   delay(500); 
   ArduinoOTA.begin(); 
@@ -124,13 +118,6 @@ void setup() {
 
 void loop() {
   printLoopFrequency();
-  //LX: Direction V> R<
-  //LY: Throttle
-  //LZ: Horn 
-
-  //RX: Cabin Lights < / FZ1 (1 white light fr and rl) >
-  //RY: toggle rear lights / toggle lights
-  //RZ: low gear (slower V-max)?
 
   if (radio.available()) {
     radio.read(&data, sizeof(Data_Package));
@@ -209,18 +196,16 @@ void loop() {
   //RZ
   lowGearEnabled = !data.rz;
 
+  //store preferences for later
   storeLightStates(Preferences_Data_Struct{lights.getMode(), lights.getInteriorLightsStatus(), lights.getDirection()});
 
   if (!SAFE_MODE) {
     const bool writeSucceeded = motor.write(data.ly, lowGearEnabled);
-
     if (writeSucceeded) {
       lights.write();
     } else {
       blinkLightsInMotorBlockedPattern();
     }
-    //writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active);
-    //writeInteriorLights(interiorLightsActive);
     writeHorn(hornActive);
   }
 }
@@ -230,7 +215,7 @@ unsigned long lastLoopMeasureTime = 0;
 unsigned long loopCounter = 0;
 void printLoopFrequency() {
   loopCounter++;
-  unsigned long currentTime = millis();
+  const unsigned long currentTime = millis();
   if (currentTime - lastLoopMeasureTime >= 1000) {
     Serial.print("Loops/s: ");
     Serial.println(loopCounter);
