@@ -123,3 +123,11 @@ void Lights::writeExteriorLights(bool fla, bool flb, bool fra, bool frb, bool ft
 LightMode Lights::getMode() {
     return this->lightMode;
 }
+
+bool Lights::getInteriorLightsStatus() {
+    return cabLightActive;
+}
+
+bool Lights::getDirection() {
+    return direction;
+}

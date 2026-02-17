@@ -9,9 +9,8 @@
 #define ALREADY_INITIALIZED_KEY "nvsInit"
 
 #define INTERIOR_LIGHTS_ACTIVE "intLightsOn"
-#define EXTERIOR_LIGHTS_ACTIVE "extLightsOn"
-#define REAR_LIGHTS_ACTIVE "rearLightsOn"
-#define LZ1_ACTIVE "lz1Active"
+#define EXTERIOR_LIGHT_DIRECTION "direction"
+#define LIGHT_MODE_KEY "lightMode"
 
 Preferences preferences;
 
@@ -30,22 +29,19 @@ Preferences_Data_Struct initPreferences() {
         preferences.begin(PREFERENCES_NAME_SPACE, RW_MODE);
 
         preferences.putBool(INTERIOR_LIGHTS_ACTIVE, false);
-        preferences.putBool(EXTERIOR_LIGHTS_ACTIVE, false);
-        preferences.putBool(REAR_LIGHTS_ACTIVE, false);
-        preferences.putBool(LZ1_ACTIVE, false);
-
+        preferences.putBool(EXTERIOR_LIGHT_DIRECTION, true);
+        preferences.putUInt(LIGHT_MODE_KEY, static_cast<uint8_t>(LightMode::Off));
         preferences.putBool(ALREADY_INITIALIZED_KEY, true);
-
         preferences.end();
+
         preferences.begin(PREFERENCES_NAME_SPACE, RO_MODE);
     }
-
     //puzzle together the result 
     Preferences_Data_Struct result;
     result.interiorLightsActive = preferences.getBool(INTERIOR_LIGHTS_ACTIVE, false);
-    result.exteriorLightsActive = preferences.getBool(EXTERIOR_LIGHTS_ACTIVE, false);
-    result.rearLightsActive     = preferences.getBool(REAR_LIGHTS_ACTIVE, false);
-    result.lz1Active            = preferences.getBool(LZ1_ACTIVE, false);
+    result.direction = preferences.getBool(EXTERIOR_LIGHT_DIRECTION, false);
+    uint8_t storedMode = preferences.getUInt(LIGHT_MODE_KEY, static_cast<uint8_t>(LightMode::Off));
+    result.lightMode = static_cast<LightMode>(storedMode);
     preferences.end();
     return result;
 }
@@ -53,8 +49,7 @@ Preferences_Data_Struct initPreferences() {
 void storeLightStates(Preferences_Data_Struct states) {
     preferences.begin(PREFERENCES_NAME_SPACE, RW_MODE); 
     preferences.putBool(INTERIOR_LIGHTS_ACTIVE, states.interiorLightsActive);
-    preferences.putBool(EXTERIOR_LIGHTS_ACTIVE, states.exteriorLightsActive);
-    preferences.putBool(REAR_LIGHTS_ACTIVE, states.rearLightsActive);
-    preferences.putBool(LZ1_ACTIVE, states.lz1Active);
-    preferences.end(); 
+    preferences.putBool(EXTERIOR_LIGHT_DIRECTION, states.direction);
+    preferences.putUInt(LIGHT_MODE_KEY, static_cast<uint8_t>(states.lightMode));
+    preferences.end();
 }

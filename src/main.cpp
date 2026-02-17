@@ -104,13 +104,14 @@ void setup() {
 
   //Set pin Modes and write LOW
   initPins();
-  
-  //TODO: Set up preferences, init light states
+
   const Preferences_Data_Struct savedStates = initPreferences();
+  lights.setMode(savedStates.lightMode);
+  lights.setDirection(savedStates.direction);
+  lights.setCabLightStatus(savedStates.interiorLightsActive);
 
   if (!SAFE_MODE) {
-    //writeInteriorLights(interiorLightsActive);
-    //writeExteriorLights(motor.getCurrentDirection(), exteriorLightsActive, rearLightsActive, lz1Active);
+    lights.write();
   }
 
   //Set up OTA 
@@ -141,7 +142,7 @@ void loop() {
     ArduinoOTA.handle();
     motor.block();
     motor.write(data.ly, lowGearEnabled); //<- write nevertheless, blocking is handled internally
-    blinkLightsInOfflinePattern(); //Blink front lights in a circular pattern
+    blinkLightsInOfflinePattern();
     writeHorn(false);
     return;
   }
@@ -208,11 +209,7 @@ void loop() {
   //RZ
   lowGearEnabled = !data.rz;
 
-  /*if(DEBUG_MODE) {
-    debugInputs();
-  }*/
-  //TODO: Store preferences
-  //storeLightStates(Preferences_Data_Struct({interiorLightsActive, exteriorLightsActive, rearLightsActive, lz1Active}));
+  storeLightStates(Preferences_Data_Struct{lights.getMode(), lights.getInteriorLightsStatus(), lights.getDirection()});
 
   if (!SAFE_MODE) {
     const bool writeSucceeded = motor.write(data.ly, lowGearEnabled);
