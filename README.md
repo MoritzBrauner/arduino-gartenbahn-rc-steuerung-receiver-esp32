@@ -13,6 +13,26 @@ Lokale IP: 192.168.1.108
 
 Speicherung von Licht-Zuständen neustartübergreifen mit der  '***Preferences***' Lib
 
+--- 
+
+## Steuerung: 
+
+![Fernbedienung](docs/images/remote.jpeg)
+
+### Belegung: 
+
+#### Stick Links:
+- X-Achse: < Vorwärst / > Rückwärts (nur wenn gestoppt) 
+- Y-Achse: Fahrregler
+
+#### Stick Rechts: 
+
+#### Schalter Links:
+- Hupe 
+
+#### Schalter Rechts:
+- Schildkrötengang (runter = an)
+- 
 ---
 
 ## ESP32 Pinout Referenz: 
