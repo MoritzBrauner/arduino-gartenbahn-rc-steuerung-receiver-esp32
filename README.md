@@ -23,7 +23,7 @@ Speicherung von Licht-Zuständen neustartübergreifen mit der  '***Preferences**
 
 #### Stick Links:
 - X-Achse: < Vorwärst / > Rückwärts (nur wenn gestoppt) 
-- Y-Achse: Fahrregler
+- Y-Achse: Fahrregler :arrow_up_down:
 
 #### Stick Rechts: 
 
